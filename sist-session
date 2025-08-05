@@ -1,13 +1,12 @@
 #!/bin/bash
-# --- Sist OS 最終確定版 マスターセッションスクリプト ---
+# --- Sist OS Session Script ---
 
-# Waylandセッションとして動作するために必要な環境変数を設定
-export XDG_SESSION_TYPE=wayland
-export MOZ_ENABLE_WAYLAND=1 # Firefox用
-export QT_QPA_PLATFORM=wayland
-export ECORE_EVAS_ENGINE=wayland_egl
-export ELM_ENGINE=wayland_egl
+# 環境変数の設定 (必要に応じて)
+export GDK_BACKEND=x11
 
-# Cageコンポジタを起動し、その中でFlutterアプリケーションを実行する
-# execコマンドにより、このプロセスがセッションの本体となる
-exec cage /opt/sist_ui/sist_ui
+# Openboxウィンドウマネージャをバックグラウンドで起動
+openbox --config-file ~/.config/openbox/rc.xml &
+
+# Flutterデスクトップシェルを起動
+# これがデスクトップの背景、アイコン、タスクバーの役割を担う
+/opt/sist_ui/sist_ui

@@ -1,16 +1,75 @@
-# sist_ui
+# SIST UI
 
-A new Flutter project.
+SIST UIは、Flutterで構築された、美しくカスタマイズ可能なデスクトップ環境のプロトタイプです。
+Linuxデスクトップ環境の新しい可能性を探るために開発されました。
 
-## Getting Started
+## ✨ 主な機能
 
-This project is a starting point for a Flutter application.
+- **モダンなデスクトップUI:** 滑らかなアニメーションと、透明感のあるデザインを取り入れた、直感的なデスクトップ体験を提供します。
+- **アプリケーションランチャー:** デスクトップ上のアイコンや、スタイリッシュなタスクバーから、簡単にアプリケーションを起動できます。
+- **ウィンドウ管理:** アプリケーションは独立したウィンドウとして開かれ、ドラッグして自由に配置できます。
+- **カスタマイズ性:**
+    - **壁紙変更:** お気に入りの画像をデスクトップの壁紙に設定できます。
+    - **アイコン:** アイコンのサイズや配置を自由に変更できます。
+    - **テーマカラー:** アクセントカラーを変更して、自分だけのデスクトップを作成できます。（今後の実装予定）
+- **基本的なデスクトップ機能:**
+    - ファイルやフォルダの作成、名前の変更、削除
+    - 右クリックによるコンテキストメニュー
+    - 時計表示
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠️ セットアップと実行
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 前提条件
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter SDK (安定版)
+- Linux環境 (開発はUbuntuでテストされています)
+- `openbox` (ウィンドウマネージャとして利用)
+
+### インストール
+
+1. **リポジトリをクローンします:**
+   ```bash
+   git clone https://github.com/s-rin/sist_ui.git
+   cd sist_ui
+   ```
+
+2. **Flutterパッケージを取得します:**
+   ```bash
+   flutter pub get
+   ```
+
+3. **アプリケーションをビルドします:**
+   ```bash
+   flutter build linux
+   ```
+
+### デプロイと実行
+
+付属のデプロイスクリプトを使用して、ビルドしたアプリケーションと設定ファイルを適切な場所に配置します。
+
+```bash
+./deploy.sh
+```
+
+このスクリプトは、主に以下の処理を行います。
+
+1. Flutterアプリケーションをビルドします。
+2. ビルドされたファイルを `/opt/sist_ui` にコピーします。
+3. Openboxの設定ファイル `rc.xml` を `~/.config/openbox/` に配置します。
+
+デプロイ後、システムに自動ログインを設定し、再起動してください。
+
+```bash
+   sudo reboot
+   ```
+
+## 今後の展望
+
+- 高機能なファイルマネージャーの実装
+- テーマ設定機能（ライト/ダークモード、カスタムカラー）
+- ウィジェットのサポート（天気、カレンダーなど）
+- プラグインシステムによる機能拡張
+
+## 🙏 貢献
+
+バグ報告、機能提案、プルリクエストを歓迎します。問題があれば、お気軽にIssueを立ててください。
