@@ -1,6 +1,13 @@
 #!/bin/bash
-# --- 新アーキテクチャ用セッションスクリプト ---
+# --- Sist OS 最終確定版 マスターセッションスクリプト ---
 
-# Cageを起動し、その中でFlutterアプリを実行する
-# これだけで、ウィンドウ枠なし・フルスクリーンが実現される
+# Waylandセッションとして動作するために必要な環境変数を設定
+export XDG_SESSION_TYPE=wayland
+export MOZ_ENABLE_WAYLAND=1 # Firefox用
+export QT_QPA_PLATFORM=wayland
+export ECORE_EVAS_ENGINE=wayland_egl
+export ELM_ENGINE=wayland_egl
+
+# Cageコンポジタを起動し、その中でFlutterアプリケーションを実行する
+# execコマンドにより、このプロセスがセッションの本体となる
 exec cage /opt/sist_ui/sist_ui
