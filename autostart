@@ -1,9 +1,12 @@
 #!/bin/bash
+# --- 最終診断用 autostart ---
+# Flutterアプリの代わりに、xtermだけを起動してみる
 
-# autostartスクリプトのログ
-LOG_FILE="/tmp/autostart_debug.log"
+# 診断用のログファイル
+LOG_FILE="/tmp/diagnostic_autostart.log"
 exec > $LOG_FILE 2>&1
 set -x
 
-# Flutterアプリを起動
-/opt/sist_ui/sist_ui
+# xtermをセッションのメインプロセスとして起動する
+# このウィンドウを閉じるとセッションが終了する
+exec xterm

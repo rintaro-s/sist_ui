@@ -1,13 +1,6 @@
 #!/bin/bash
+# --- 最終確定版セッションスクリプト ---
 
-# Openbox自体の起動をデバッグするためのログ
-LOG_FILE="/tmp/openbox_debug.log"
-exec > $LOG_FILE 2>&1
-
-echo "--- Openbox Session Start at $(date) ---"
-echo "User: $(whoami)"
-echo "DISPLAY: $DISPLAY"
-echo "-------------------------------------"
-
-# 【変更】--debug フラグを追加して、Openboxのデバッグモードを有効にする
-exec openbox --debug --config-file ~/.config/openbox/rc.xml
+# dbus-launch を使って、セッションバスを起動し、その中でopenboxを実行する
+# これが、カスタムデスクトップ環境を安定して起動させるための標準的な方法
+exec dbus-launch --exit-with-session openbox
