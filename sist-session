@@ -1,11 +1,6 @@
 #!/bin/bash
-# --- Sist OS マスターセッションスクリプト ---
-# この単一のスクリプトが、デスクトップ環境のすべてを起動します。
+# --- 新アーキテクチャ用セッションスクリプト ---
 
-# Openboxウィンドウマネージャをバックグラウンドで起動します。
-# --config-file オプションで、私たちのカスタム設定を強制的に読み込ませます。
-openbox --config-file ~/.config/openbox/rc.xml &
-
-# Flutter UIをメインアプリケーションとして起動します。
-# 'exec' コマンドは、このアプリが終了するとセッション全体も終了することを意味します。
-exec /opt/sist_ui/sist_ui
+# Cageを起動し、その中でFlutterアプリを実行する
+# これだけで、ウィンドウ枠なし・フルスクリーンが実現される
+exec cage /opt/sist_ui/sist_ui
