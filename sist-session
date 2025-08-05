@@ -1,8 +1,9 @@
 #!/bin/bash
 # --- Sist OS Session Script ---
 
-# 環境変数の設定 (必要に応じて)
-export GDK_BACKEND=x11
+# 描画の乱れを防ぐため、コンポジタ(picom)を起動
+# --experimental-backends をつけることで、より多くの環境で動作しやすくなる
+picom --experimental-backends & 
 
 # Openboxウィンドウマネージャをバックグラウンドで起動
 openbox --config-file ~/.config/openbox/rc.xml &
