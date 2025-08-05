@@ -1,75 +1,49 @@
 #!/bin/bash
 
-# --- Sist OS 自動ビルド＆配置スクリプト ---
-# エラーが発生した場合は、その時点でスクリプトを停止します
 set -e
 
-echo "🚀 Sist OS Deployment Script - Memento Mori Edition"
+echo "🚀 Sist OS Deployment Script - Final Edition"
 echo "----------------------------------------------------"
 
-# 1. Get Flutter project dependencies
+# 1. Flutter Build
 echo "📦 Fetching packages..."
 flutter pub get
-
-# 2. Build Flutter app
-# ここでは 'set -e' を一時的に無効にし、ビルド失敗を個別にハンドルします
-set +e
 echo "🛠️ Building application..."
 flutter build linux
-BUILD_STATUS=$? # 直前のコマンドの終了ステータスを取得
-set -e
-
-# 3. Check build result
-if [ $BUILD_STATUS -ne 0 ]; then
-  # 0以外はエラーを意味する
-  echo "❌ Build failed. (Exit code: $BUILD_STATUS)"
-  echo "   Deployment process aborted."
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed."
+  echo "   Aborting deployment process."
   exit 1
-else
-  echo "✅ Build succeeded!"
 fi
+echo "✅ Build succeeded!"
 
-# 4. Deploy application bundle
+# 2. Deploy Application
 echo "🚚 Deploying application to /opt/sist_ui..."
-# 古いバージョンがあれば削除
+# Remove old version if it exists
 if [ -d "/opt/sist_ui" ]; then
   sudo rm -rf /opt/sist_ui
 fi
-# ビルドしたアプリ一式をコピー
+# Copy the entire built app
 sudo cp -r build/linux/x64/release/bundle /opt/sist_ui
 echo "   Deployment complete."
 
-# 5. Deploy Openbox configuration files
+# 3. Deploy Openbox Configuration
 echo "⚙️ Deploying Openbox configuration..."
-# 設定ディレクトリがなければ作成
+# Create directory if it doesn't exist
 mkdir -p ~/.config/openbox
+cp rc.xml ~/.config/openbox/rc.xml
+cp autostart ~/.config/openbox/autostart
+chmod +x ~/.config/openbox/autostart
 
-# rc.xml をコピー
-if [ -f "rc.xml" ]; then
-  cp rc.xml ~/.config/openbox/rc.xml
-  echo "   Copied to ~/.config/openbox/rc.xml."
-else
-  echo "   ⚠️  Warning: rc.xml not found in project."
-fi
+# 4. Fix ownership of config directory
+echo "🔐 Fixing ownership of config directory..."
+# $USER will be replaced with the current username (e.g., rinta)
+sudo chown -R $USER:$USER /home/$USER/.config
 
-# autostart スクリプトをコピー
-if [ -f "autostart" ]; then
-  cp autostart ~/.config/openbox/autostart
-  chmod +x ~/.config/openbox/autostart
-  echo "   Copied to ~/.config/openbox/autostart and set executable."
-else
-  echo "   ⚠️  Warning: autostart not found in project."
-fi
-
-# 6. Deploy login session script
+# 5. Deploy Login Session Script
 echo "🔑 Deploying login session script..."
-if [ -f "sist-session" ]; then
-  sudo cp sist-session /usr/local/bin/sist-session
-  sudo chmod +x /usr/local/bin/sist-session
-  echo "   Copied to /usr/local/bin/sist-session and set executable."
-else
-  echo "   ⚠️  Warning: sist-session not found in project."
-fi
+sudo cp sist-session /usr/local/bin/sist-session
+sudo chmod +x /usr/local/bin/sist-session
 
 echo ""
 echo "🎉 All processes completed successfully!"

@@ -1,15 +1,8 @@
 #!/bin/bash
 
-# ログファイルを誰でも書き込める /tmp に作成
-LOG_FILE="/tmp/sist_autostart.log"
-
-# 起動試行のたびに新しいログファイルを作成
-echo "--- Sist Autostart at $(date) ---" > $LOG_FILE
-
-# これ以降のすべての出力をログファイルに追記する
-exec >> $LOG_FILE 2>&1
-
-# 実行されるコマンドをログに出力する
+# autostartスクリプトのログ
+LOG_FILE="/tmp/autostart_debug.log"
+exec > $LOG_FILE 2>&1
 set -x
 
 # Flutterアプリを起動

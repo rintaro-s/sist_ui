@@ -2,16 +2,12 @@
 
 # Openbox自体の起動をデバッグするためのログ
 LOG_FILE="/tmp/openbox_debug.log"
+exec > $LOG_FILE 2>&1
 
-echo "--- Openbox Session Start at $(date) ---" > $LOG_FILE
-echo "User: $(whoami)" >> $LOG_FILE
-echo "DISPLAY: $DISPLAY" >> $LOG_FILE
-echo "-------------------------------------" >> $LOG_FILE
+echo "--- Openbox Session Start at $(date) ---"
+echo "User: $(whoami)"
+echo "DISPLAY: $DISPLAY"
+echo "-------------------------------------"
 
-# exec を使って、これ以降のすべての出力をログに追記する
-# これにより、openbox が出力するエラーもすべて記録される
-exec >> $LOG_FILE 2>&1
-
-# Openboxセッションを開始
-# このコマンドが失敗する場合、そのエラーがログに記録される
-exec openbox
+# 【変更】設定ファイル(~/.config/openbox/rc.xml)を明示的に指定してOpenboxを起動
+exec openbox --config-file ~/.config/openbox/rc.xml
