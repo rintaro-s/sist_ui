@@ -1,2 +1,17 @@
 #!/bin/bash
+
+# Openbox自体の起動をデバッグするためのログ
+LOG_FILE="/tmp/openbox_debug.log"
+
+echo "--- Openbox Session Start at $(date) ---" > $LOG_FILE
+echo "User: $(whoami)" >> $LOG_FILE
+echo "DISPLAY: $DISPLAY" >> $LOG_FILE
+echo "-------------------------------------" >> $LOG_FILE
+
+# exec を使って、これ以降のすべての出力をログに追記する
+# これにより、openbox が出力するエラーもすべて記録される
+exec >> $LOG_FILE 2>&1
+
+# Openboxセッションを開始
+# このコマンドが失敗する場合、そのエラーがログに記録される
 exec openbox
