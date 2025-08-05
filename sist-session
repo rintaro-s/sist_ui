@@ -1,6 +1,10 @@
 #!/bin/bash
 # --- 最終確定版セッションスクリプト ---
 
-# dbus-launch を使って、セッションバスを起動し、その中でopenboxを実行する
-# これが、カスタムデスクトップ環境を安定して起動させるための標準的な方法
-exec dbus-launch --exit-with-session openbox
+# ユーザー個別の設定ファイル(~/.xinitrc)が存在すれば、それを実行する
+if [ -f "$HOME/.xinitrc" ]; then
+  . "$HOME/.xinitrc"
+fi
+
+# openbox-session を実行する
+exec openbox-session

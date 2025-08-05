@@ -1,12 +1,8 @@
 #!/bin/bash
-# --- 最終診断用 autostart ---
-# Flutterアプリの代わりに、xtermだけを起動してみる
+# --- 本番用 autostart ---
 
-# 診断用のログファイル
-LOG_FILE="/tmp/diagnostic_autostart.log"
-exec > $LOG_FILE 2>&1
-set -x
+# Openboxの起動を待つ
+sleep 1
 
-# xtermをセッションのメインプロセスとして起動する
-# このウィンドウを閉じるとセッションが終了する
-exec xterm
+# Flutterアプリをバックグラウンドで起動する
+/opt/sist_ui/sist_ui &
