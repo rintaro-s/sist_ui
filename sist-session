@@ -1,10 +1,11 @@
 #!/bin/bash
-# --- 最終確定版セッションスクリプト ---
+# --- Sist OS マスターセッションスクリプト ---
+# この単一のスクリプトが、デスクトップ環境のすべてを起動します。
 
-# ユーザー個別の設定ファイル(~/.xinitrc)が存在すれば、それを実行する
-if [ -f "$HOME/.xinitrc" ]; then
-  . "$HOME/.xinitrc"
-fi
+# Openboxウィンドウマネージャをバックグラウンドで起動します。
+# --config-file オプションで、私たちのカスタム設定を強制的に読み込ませます。
+openbox --config-file ~/.config/openbox/rc.xml &
 
-# openbox-session を実行する
-exec openbox-session
+# Flutter UIをメインアプリケーションとして起動します。
+# 'exec' コマンドは、このアプリが終了するとセッション全体も終了することを意味します。
+exec /opt/sist_ui/sist_ui

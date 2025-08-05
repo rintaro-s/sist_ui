@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Sist OS Deployment Script - Final Edition"
+echo "🚀 Sist OS Deployment Script - Final Architecture"
 echo "----------------------------------------------------"
 
 # Flutterビルド
@@ -25,13 +25,19 @@ mkdir -p ~/.config/openbox
 cp rc.xml ~/.config/openbox/rc.xml
 echo "   rc.xml deployed."
 
-# ログインセッションスクリプト配置
-echo "🔑 Deploying login session script..."
+# 不要になったautostartファイルを削除
+if [ -f "$HOME/.config/openbox/autostart" ]; then
+    echo "   -> Removing obsolete autostart file."
+    rm "$HOME/.config/openbox/autostart"
+fi
+
+# マスターセッションスクリプトを配置
+echo "🔑 Deploying the master session script..."
 sudo cp sist-session /usr/local/bin/sist-session
 sudo chmod +x /usr/local/bin/sist-session
 echo "   sist-session deployed."
 
 echo ""
 echo "🎉 Deployment script finished!"
-echo "   Please ensure you have created and configured ~/.xinitrc correctly."
-echo "   Then, reboot your system: sudo reboot"
+echo "   This is the final and simplest architecture."
+echo "   Please reboot your system: sudo reboot"
