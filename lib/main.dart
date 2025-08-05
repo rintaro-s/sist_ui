@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
-import 'package.process_run/process_run.dart';
+import 'package:process_run/process_run.dart';
 
 // --- データモデル ---
 enum DesktopItemType { app, file, folder }
@@ -77,9 +77,11 @@ class _DesktopShellState extends State<DesktopShell> {
   void _launchApp(String command) {
     if (command.isEmpty) return;
     try {
+      // シェル経由でバックグラウンド実行
       run('$command &', runInShell: true);
     } catch (e) {
-      print('Could not launch $command: $e');
+      // デバッグ用に残す場合はこちらを使用
+      // print('Could not launch $command: $e');
     }
   }
 
@@ -106,7 +108,7 @@ class _DesktopShellState extends State<DesktopShell> {
           // デスクトップ上のメニュー
           menuItems = [
             _buildContextMenuItem(Icons.sort, '表示順の変更', () {}),
-            _buildContextMenuItem(Icons.refresh, 'リフレッシュ', () {}),
+            _buildContextMenuItem(Icons.refresh, 'リフレッシュ', () => setState((){})), // setStateで再描画
             const _ContextMenuDivider(),
             _buildContextMenuItem(Icons.create_new_folder, '新規フォルダ', () {
                setState(() {
@@ -137,12 +139,13 @@ class _DesktopShellState extends State<DesktopShell> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xff1a1816).withOpacity(0.9),
-                    border: Border.all(color: const Color(0xffd7c9a7).withOpacity(0.5)),
+                    color: const Color(0xE61a1816), // withOpacity(0.9)
+                    border: Border.all(color: const Color(0x80d7c9a7)), // withOpacity(0.5)
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // 自身のサイズを子に合わせる
                     children: menuItems,
                   ),
                 ),
@@ -181,12 +184,7 @@ class _DesktopShellState extends State<DesktopShell> {
 
   // --- デスクトップアイテムの操作 ---
   void _handleItemDoubleClick(DesktopItem item) {
-    if (item.type == DesktopItemType.folder) {
-      // TODO: フォルダを開くUIを実装
-      print("Opening folder: ${item.name}");
-    } else {
-      print("Opening app/file: ${item.name}");
-    }
+    // TODO: フォルダを開くUIやアプリ起動ロジックを実装
   }
 
   @override
@@ -249,8 +247,11 @@ class _DesktopShellState extends State<DesktopShell> {
           builder: (context, candidateData, rejectedData) {
             return iconWidget;
           },
-          onWillAccept: (data) => data?.id != item.id,
-          onAccept: (droppedItem) {
+          // 【修正】非推奨の onWillAccept を onWillAcceptWithDetails に変更
+          onWillAcceptWithDetails: (details) => details.data.id != item.id,
+          // 【修正】非推奨の onAccept を onAcceptWithDetails に変更
+          onAcceptWithDetails: (details) {
+            final droppedItem = details.data;
             // フォルダ作成ロジック
             setState(() {
               final newFolder = DesktopItem(
@@ -289,7 +290,8 @@ class _DesktopIconWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(item.icon, size: 48, color: Colors.white, shadowColor: Colors.black, shadows: const [Shadow(blurRadius: 10)]),
+            // 【修正】shadowColor パラメータを削除し、shadows に color を追加
+            Icon(item.icon, size: 48, color: Colors.white, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
             const SizedBox(height: 8),
             Text(
               item.name,
@@ -312,7 +314,7 @@ class _ContextMenuDivider extends StatelessWidget {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      color: const Color(0xffd7c9a7).withOpacity(0.2),
+      color: const Color(0x33d7c9a7), // withOpacity(0.2)
     );
   }
 }
@@ -327,7 +329,7 @@ class BackgroundLayer extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('assets/background.png'),
+          image: AssetImage('assets/wallpaper.png'),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
         ),
@@ -489,8 +491,8 @@ class _NavButtonState extends State<NavButton> {
 class InkstainPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0xff1a1816).withOpacity(0.7)..style = PaintingStyle.fill;
-    final borderPaint = Paint()..color = const Color(0xffd7c9a7).withOpacity(0.5)..strokeWidth = 1.5..style = PaintingStyle.stroke;
+    final paint = Paint()..color = const Color(0xB31a1816)..style = PaintingStyle.fill; // withOpacity(0.7)
+    final borderPaint = Paint()..color = const Color(0x80d7c9a7)..strokeWidth = 1.5..style = PaintingStyle.stroke; // withOpacity(0.5)
     final path = _getInkstainPath(size);
     canvas.drawPath(path, paint);
     canvas.drawPath(path, borderPaint);
