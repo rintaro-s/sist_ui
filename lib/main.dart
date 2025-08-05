@@ -1,7 +1,5 @@
 import 'dart:ui';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
@@ -437,7 +435,7 @@ class _DesktopShellState extends State<DesktopShell> with TickerProviderStateMix
                 window: w,
                 onClose: () => _closeWindow(w.id),
                 onFocus: () => _focusWindow(w.id),
-                onDrag: (offset) => setState(() => w.position = offset),
+                onDrag: (delta) => setState(() => w.position += delta),
               )),
 
               // Taskbar
@@ -568,7 +566,9 @@ class BackgroundLayer extends StatelessWidget {
       ),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-        child: Container(color: Colors.black.withOpacity(0.3)),
+        child: Container(
+          color: Colors.black.withAlpha((0.3 * 255).toInt()), // withOpacity(0.3) → withAlpha
+        ),
       ),
     );
   }
@@ -607,7 +607,7 @@ class Taskbar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           height: 50,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withAlpha((0.3 * 255).toInt()), // withOpacity(0.3)
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
@@ -709,29 +709,28 @@ class DraggableWindow extends StatelessWidget {
       top: window.position.dy,
       child: GestureDetector(
         onTap: onFocus,
-        child: Draggable(
-          handle: const _WindowHeader(title: ''), // Use a dummy handle for the whole header
-          feedback: Material(color: Colors.transparent, child: Container(width: window.size.width, height: window.size.height, decoration: BoxDecoration(border: Border.all(color: Colors.white.withOpacity(0.5))))),
-          childWhenDragging: const SizedBox.shrink(),
-          onDragEnd: (details) => onDrag(details.offset),
-          child: Container(
-            width: window.size.width,
-            height: window.size.height,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1a1816).withOpacity(0.9),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: window.isFocused ? const Color(0xffd7c9a7) : Colors.white.withOpacity(0.2)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30, spreadRadius: 5)],
-            ),
-            child: Column(
-              children: [
-                _WindowHeader(title: window.title, onClose: onClose),
-                Expanded(child: ClipRRect(
+        child: Container(
+          width: window.size.width,
+          height: window.size.height,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1a1816).withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: window.isFocused ? const Color(0xffd7c9a7) : Colors.white.withOpacity(0.2)),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30, spreadRadius: 5)],
+          ),
+          child: Column(
+            children: [
+              GestureDetector(
+                onPanUpdate: (details) => onDrag(details.delta),
+                child: _WindowHeader(title: window.title, onClose: onClose),
+              ),
+              Expanded(
+                child: ClipRRect(
                   borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
                   child: window.content,
-                )),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -747,28 +746,101 @@ class _WindowHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      // This makes the whole header draggable
-      onPanUpdate: (_) {}, // Dummy gesture handler
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: const BoxDecoration(
-          color: Color(0xFF2a2826),
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-        ),
-        child: Row(
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const Spacer(),
-            if (onClose != null)
-              IconButton(
-                icon: const Icon(Icons.close, size: 18),
-                onPressed: onClose,
-                splashRadius: 20,
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF2a2826),
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+      ),
+      child: Row(
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const Spacer(),
+          if (onClose != null)
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: onClose,
+              splashRadius: 20,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DraggableWindowBody extends StatefulWidget {
+  final Window window;
+  final VoidCallback onClose;
+  final VoidCallback onFocus;
+  final Function(Offset) onDrag;
+
+  const _DraggableWindowBody({
+    required this.window,
+    required this.onClose,
+    required this.onFocus,
+    required this.onDrag,
+  });
+
+  @override
+  State<_DraggableWindowBody> createState() => _DraggableWindowBodyState();
+}
+
+class _DraggableWindowBodyState extends State<_DraggableWindowBody> {
+  Offset? dragStart;
+  Offset? windowStart;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => widget.onFocus(),
+      child: Stack(
+        children: [
+          Container(
+            width: widget.window.size.width,
+            height: widget.window.size.height,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1a1816).withAlpha((0.9 * 255).toInt()), // withOpacity(0.9)
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: widget.window.isFocused
+                    ? const Color(0xffd7c9a7)
+                    : Colors.white.withAlpha((0.2 * 255).toInt()), // withOpacity(0.2)
               ),
-          ],
-        ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha((0.5 * 255).toInt()), // withOpacity(0.5)
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                GestureDetector(
+                  onPanStart: (details) {
+                    dragStart = details.globalPosition;
+                    windowStart = widget.window.position;
+                  },
+                  onPanUpdate: (details) {
+                    if (dragStart != null && windowStart != null) {
+                      final delta = details.globalPosition - dragStart!;
+                      widget.onDrag(windowStart! + delta);
+                    }
+                  },
+                  child: _WindowHeader(title: widget.window.title, onClose: widget.onClose),
+                ),
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(12), bottomRight: Radius.circular(12)),
+                    child: widget.window.content,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
