@@ -9,5 +9,5 @@ echo "User: $(whoami)"
 echo "DISPLAY: $DISPLAY"
 echo "-------------------------------------"
 
-# 【変更】設定ファイル(~/.config/openbox/rc.xml)を明示的に指定してOpenboxを起動
-exec openbox --config-file ~/.config/openbox/rc.xml
+# 【変更】--debug フラグを追加して、Openboxのデバッグモードを有効にする
+exec openbox --debug --config-file ~/.config/openbox/rc.xml
