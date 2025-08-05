@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart'; // 【追加】
 import 'dart:async';
-import 'package.process_run/process_run.dart';
+import 'package:process_run/process_run.dart'; // 【修正】ドット(.)をコロン(:)に修正
 
 // --- データモデル (変更なし) ---
 enum DesktopItemType { app, file, folder }
