@@ -19,24 +19,13 @@ sudo rm -rf /opt/sist_ui
 sudo cp -r build/linux/x64/release/bundle /opt/sist_ui
 echo "   Deployment complete."
 
-# 3. マスターセッションスクリプトを配置
-echo "🔑 Deploying the master session script..."
-sudo cp sist-session /usr/local/bin/sist-session
-sudo chmod +x /usr/local/bin/sist-session
-echo "   sist-session deployed."
-
-# 4. ログイン画面用の.desktopファイルを自動生成
-echo "🖥️  Creating .desktop file for the login manager..."
-
-# .desktopファイルの内容を定義
-DESKTOP_FILE_CONTENT="[Desktop Entry]\nName=Sist OS\nComment=A custom desktop shell by rinta\nExec=/usr/local/bin/sist-session\nType=Application"
-
-# 保護されたディレクトリに安全に書き込む
-echo -e "$DESKTOP_FILE_CONTENT" | sudo tee /usr/share/xsessions/sist.desktop > /dev/null
-sudo chmod 644 /usr/share/xsessions/sist.desktop
-echo "   sist.desktop created successfully."
+# 3. Openbox設定配置 (rc.xmlのみ)
+echo "⚙️ Deploying Openbox configuration..."
+mkdir -p ~/.config/openbox
+cp rc.xml ~/.config/openbox/rc.xml
+echo "   rc.xml deployed."
 
 echo ""
 echo "🎉 Deployment script finished!"
-echo "   This is the final and definitive architecture."
-echo "   Please reboot your system: sudo reboot"
+echo "   Please ensure you have configured the system for auto-login."
+echo "   Then, reboot your system: sudo reboot"
