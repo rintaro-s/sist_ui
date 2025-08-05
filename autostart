@@ -1,0 +1,3 @@
+#!/bin/bash
+# Flutterアプリをバックグラウンドで起動
+/opt/sist_ui/sist_ui &
