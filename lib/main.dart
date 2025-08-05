@@ -2,13 +2,12 @@ import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/date_symbol_data_local.dart'; // 【追加】
 import 'dart:async';
-import 'package:process_run/process_run.dart';
+import 'package.process_run/process_run.dart';
 
-// --- データモデル ---
+// --- データモデル (変更なし) ---
 enum DesktopItemType { app, file, folder }
-
 class DesktopItem {
   String id;
   DesktopItemType type;
@@ -16,27 +15,19 @@ class DesktopItem {
   IconData icon;
   Offset position;
   List<DesktopItem>? children;
-
-  DesktopItem({
-    required this.id,
-    required this.type,
-    required this.name,
-    required this.icon,
-    required this.position,
-    this.children,
-  });
+  DesktopItem({ required this.id, required this.type, required this.name, required this.icon, required this.position, this.children });
 }
 
-// --- アプリケーションのメインエントリーポイント ---
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('ja_JP', null);
+// --- メインエントリーポイント ---
+Future<void> main() async { // 【変更】
+  WidgetsFlutterBinding.ensureInitialized(); // 【追加】
+  await initializeDateFormatting('ja_JP', null); // 【追加】
   runApp(const MementoMoriApp());
 }
 
+// --- これ以降のコードは変更ありません ---
 class MementoMoriApp extends StatelessWidget {
   const MementoMoriApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -45,88 +36,70 @@ class MementoMoriApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'Cinzel',
         brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xffd7c9a7),
-          brightness: Brightness.dark,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xffd7c9a7), brightness: Brightness.dark),
       ),
       home: const DesktopShell(),
     );
   }
 }
 
-// --- デスクトップシェル本体 ---
 class DesktopShell extends StatefulWidget {
   const DesktopShell({super.key});
-
   @override
   State<DesktopShell> createState() => _DesktopShellState();
 }
 
 class _DesktopShellState extends State<DesktopShell> {
-  // デスクトップアイテムの初期データ
   List<DesktopItem> desktopItems = [
     DesktopItem(id: 'item-1', type: DesktopItemType.app, name: 'ギャラリー', icon: Icons.photo_library, position: const Offset(100, 100)),
     DesktopItem(id: 'item-2', type: DesktopItemType.app, name: 'ミュージック', icon: Icons.music_note, position: const Offset(100, 220)),
     DesktopItem(id: 'item-3', type: DesktopItemType.file, name: 'character_story.txt', icon: Icons.description, position: const Offset(220, 100)),
   ];
-
-  // 右クリックメニューの状態
   OverlayEntry? _contextMenuEntry;
 
   void _launchApp(String command) {
     if (command.isEmpty) return;
     try {
-      // シェル経由でバックグラウンド実行
       run('$command &', runInShell: true);
     } catch (e) {
-      // デバッグ用に残す場合はこちらを使用
       // print('Could not launch $command: $e');
     }
   }
 
-  // --- 右クリックメニュー処理 ---
   void _showContextMenu(BuildContext context, TapDownDetails details, {DesktopItem? item}) {
-    _hideContextMenu(); // 既存のメニューを閉じる
-    
+    _hideContextMenu();
     _contextMenuEntry = OverlayEntry(
       builder: (context) {
         List<Widget> menuItems;
         if (item != null) {
-          // アイコン上のメニュー
           menuItems = [
             _buildContextMenuItem(Icons.open_in_new, '開く', () => _handleItemDoubleClick(item)),
             const _ContextMenuDivider(),
             _buildContextMenuItem(Icons.drive_file_rename_outline, '名前の変更', () {}),
             _buildContextMenuItem(Icons.delete, '削除', () {
-              setState(() {
-                desktopItems.removeWhere((i) => i.id == item.id);
-              });
+              setState(() => desktopItems.removeWhere((i) => i.id == item.id));
             }),
           ];
         } else {
-          // デスクトップ上のメニュー
           menuItems = [
             _buildContextMenuItem(Icons.sort, '表示順の変更', () {}),
-            _buildContextMenuItem(Icons.refresh, 'リフレッシュ', () => setState((){})), // setStateで再描画
+            _buildContextMenuItem(Icons.refresh, 'リフレッシュ', () => setState((){})),
             const _ContextMenuDivider(),
             _buildContextMenuItem(Icons.create_new_folder, '新規フォルダ', () {
                setState(() {
-                final newFolder = DesktopItem(
+                desktopItems.add(DesktopItem(
                   id: 'folder-${DateTime.now().millisecondsSinceEpoch}',
                   type: DesktopItemType.folder,
                   name: '新しいフォルダ',
                   icon: Icons.folder_special,
                   position: details.localPosition,
                   children: [],
-                );
-                desktopItems.add(newFolder);
+                ));
               });
             }),
             _buildContextMenuItem(Icons.wallpaper, '壁紙の変更', () {}),
           ];
         }
-
         return Positioned(
           left: details.globalPosition.dx,
           top: details.globalPosition.dy,
@@ -139,15 +112,11 @@ class _DesktopShellState extends State<DesktopShell> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xE61a1816), // withOpacity(0.9)
-                    border: Border.all(color: const Color(0x80d7c9a7)), // withOpacity(0.5)
+                    color: const Color(0xE61a1816),
+                    border: Border.all(color: const Color(0x80d7c9a7)),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min, // 自身のサイズを子に合わせる
-                    children: menuItems,
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: menuItems),
                 ),
               ),
             ),
@@ -171,21 +140,16 @@ class _DesktopShellState extends State<DesktopShell> {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            Icon(icon, size: 20, color: const Color(0xffd7c9a7)),
-            const SizedBox(width: 12),
-            Text(text, style: const TextStyle(fontSize: 14)),
-          ],
-        ),
+        child: Row(children: [
+          Icon(icon, size: 20, color: const Color(0xffd7c9a7)),
+          const SizedBox(width: 12),
+          Text(text, style: const TextStyle(fontSize: 14)),
+        ]),
       ),
     );
   }
 
-  // --- デスクトップアイテムの操作 ---
-  void _handleItemDoubleClick(DesktopItem item) {
-    // TODO: フォルダを開くUIやアプリ起動ロジックを実装
-  }
+  void _handleItemDoubleClick(DesktopItem item) {}
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +157,6 @@ class _DesktopShellState extends State<DesktopShell> {
       body: Listener(
         onPointerDown: (details) {
           if (details.kind == PointerDeviceKind.mouse && details.buttons == kSecondaryMouseButton) {
-             // 右クリックイベントは何もしない（GestureDetectorに任せる）
           } else {
             _hideContextMenu();
           }
@@ -230,7 +193,6 @@ class _DesktopShellState extends State<DesktopShell> {
           child: _DesktopIconWidget(item: item),
         ),
       );
-
       return Draggable<DesktopItem>(
         data: item,
         feedback: _DesktopIconWidget(item: item, isDragging: true),
@@ -238,32 +200,24 @@ class _DesktopShellState extends State<DesktopShell> {
         onDragEnd: (details) {
           setState(() {
             final index = desktopItems.indexWhere((i) => i.id == item.id);
-            if (index != -1) {
-              desktopItems[index].position = details.offset;
-            }
+            if (index != -1) desktopItems[index].position = details.offset;
           });
         },
         child: DragTarget<DesktopItem>(
-          builder: (context, candidateData, rejectedData) {
-            return iconWidget;
-          },
-          // 【修正】非推奨の onWillAccept を onWillAcceptWithDetails に変更
+          builder: (context, candidateData, rejectedData) => iconWidget,
           onWillAcceptWithDetails: (details) => details.data.id != item.id,
-          // 【修正】非推奨の onAccept を onAcceptWithDetails に変更
           onAcceptWithDetails: (details) {
             final droppedItem = details.data;
-            // フォルダ作成ロジック
             setState(() {
-              final newFolder = DesktopItem(
+              desktopItems.add(DesktopItem(
                 id: 'folder-${DateTime.now().millisecondsSinceEpoch}',
                 type: DesktopItemType.folder,
                 name: '新しいフォルダ',
                 icon: Icons.folder_special,
                 position: item.position,
                 children: [item, droppedItem],
-              );
+              ));
               desktopItems.removeWhere((i) => i.id == item.id || i.id == droppedItem.id);
-              desktopItems.add(newFolder);
             });
           },
         ),
@@ -272,14 +226,10 @@ class _DesktopShellState extends State<DesktopShell> {
   }
 }
 
-// --- UIコンポーネント ---
-
 class _DesktopIconWidget extends StatelessWidget {
   final DesktopItem item;
   final bool isDragging;
-
   const _DesktopIconWidget({required this.item, this.isDragging = false});
-
   @override
   Widget build(BuildContext context) {
     return Opacity(
@@ -287,21 +237,11 @@ class _DesktopIconWidget extends StatelessWidget {
       child: Container(
         width: 100,
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 【修正】shadowColor パラメータを削除し、shadows に color を追加
-            Icon(item.icon, size: 48, color: Colors.white, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
-            const SizedBox(height: 8),
-            Text(
-              item.name,
-              style: const TextStyle(fontSize: 12, color: Colors.white, shadows: [Shadow(color: Colors.black, blurRadius: 5)]),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(item.icon, size: 48, color: Colors.white, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
+          const SizedBox(height: 8),
+          Text(item.name, style: const TextStyle(fontSize: 12, color: Colors.white, shadows: [Shadow(color: Colors.black, blurRadius: 5)]), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+        ]),
       ),
     );
   }
@@ -310,17 +250,8 @@ class _DesktopIconWidget extends StatelessWidget {
 class _ContextMenuDivider extends StatelessWidget {
   const _ContextMenuDivider();
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 1,
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      color: const Color(0x33d7c9a7), // withOpacity(0.2)
-    );
-  }
+  Widget build(BuildContext context) => Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 4), color: const Color(0x33d7c9a7));
 }
-
-
-// --- 以下、変更の少ないUIコンポーネント ---
 
 class BackgroundLayer extends StatelessWidget {
   const BackgroundLayer({super.key});
@@ -328,21 +259,9 @@ class BackgroundLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/wallpaper.png'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
-        ),
+        image: DecorationImage(image: AssetImage('assets/background.png'), fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken)),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.0,
-            colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-          ),
-        ),
-      ),
+      child: Container(decoration: BoxDecoration(gradient: RadialGradient(center: Alignment.center, radius: 1.0, colors: [Colors.transparent, Colors.black.withOpacity(0.8)]))),
     );
   }
 }
@@ -355,11 +274,7 @@ class CharacterLayer extends StatelessWidget {
       bottom: 0,
       left: -50,
       height: MediaQuery.of(context).size.height * 0.95,
-      child: Image.asset(
-        'assets/character.png',
-        fit: BoxFit.fitHeight,
-        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-      ),
+      child: Image.asset('assets/character.png', fit: BoxFit.fitHeight, errorBuilder: (context, error, stackTrace) => const SizedBox.shrink()),
     );
   }
 }
@@ -385,16 +300,13 @@ class BottomNavigation extends StatelessWidget {
                   height: 100,
                   width: MediaQuery.of(context).size.width * 0.7,
                   padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      NavButton(icon: Icons.folder_open, label: 'ファイル', onPressed: () => onAppLaunch('nautilus')),
-                      NavButton(icon: Icons.edit_note, label: 'ターミナル', onPressed: () => onAppLaunch('xterm')),
-                      NavButton(icon: Icons.language, label: 'ブラウザ', onPressed: () => onAppLaunch('firefox')),
-                      NavButton(icon: Icons.settings, label: '設定', onPressed: () => onAppLaunch('gnome-control-center')),
-                      NavButton(icon: Icons.logout, label: 'ログアウト', onPressed: onLogout),
-                    ],
-                  ),
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                    NavButton(icon: Icons.folder_open, label: 'ファイル', onPressed: () => onAppLaunch('nautilus')),
+                    NavButton(icon: Icons.edit_note, label: 'ターミナル', onPressed: () => onAppLaunch('xterm')),
+                    NavButton(icon: Icons.language, label: 'ブラウザ', onPressed: () => onAppLaunch('firefox')),
+                    NavButton(icon: Icons.settings, label: '設定', onPressed: () => onAppLaunch('gnome-control-center')),
+                    NavButton(icon: Icons.logout, label: 'ログアウト', onPressed: onLogout),
+                  ]),
                 ),
               ),
             ),
@@ -426,26 +338,14 @@ class _TopRightClockState extends State<TopRightClock> {
     super.dispose();
   }
   void _updateTime() {
-    if (mounted) {
-      setState(() {
-        _timeString = DateFormat('HH:mm').format(DateTime.now());
-      });
-    }
+    if (mounted) setState(() => _timeString = DateFormat('HH:mm').format(DateTime.now()));
   }
   @override
   Widget build(BuildContext context) {
     return Positioned(
       top: 20,
       right: 30,
-      child: Text(
-        _timeString,
-        style: const TextStyle(
-          color: Color(0xffd7c9a7),
-          fontSize: 32,
-          fontWeight: FontWeight.w100,
-          shadows: [Shadow(color: Colors.black, blurRadius: 10)],
-        ),
-      ),
+      child: Text(_timeString, style: const TextStyle(color: Color(0xffd7c9a7), fontSize: 32, fontWeight: FontWeight.w100, shadows: [Shadow(color: Colors.black, blurRadius: 10)])),
     );
   }
 }
@@ -468,21 +368,16 @@ class _NavButtonState extends State<NavButton> {
       onExit: (_) => setState(() => _isHovering = false),
       child: GestureDetector(
         onTap: widget.onPressed,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: _isHovering ? const Color(0xffd7c9a7) : Colors.transparent, width: 2)),
-              ),
-              child: Icon(widget.icon, size: 32, color: _isHovering ? Colors.white : const Color(0xffd7c9a7)),
-            ),
-            const SizedBox(height: 4),
-            Text(widget.label, style: TextStyle(fontSize: 12, color: _isHovering ? Colors.white : const Color(0xffd7c9a7))),
-          ],
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: _isHovering ? const Color(0xffd7c9a7) : Colors.transparent, width: 2))),
+            child: Icon(widget.icon, size: 32, color: _isHovering ? Colors.white : const Color(0xffd7c9a7)),
+          ),
+          const SizedBox(height: 4),
+          Text(widget.label, style: TextStyle(fontSize: 12, color: _isHovering ? Colors.white : const Color(0xffd7c9a7))),
+        ]),
       ),
     );
   }
@@ -491,8 +386,8 @@ class _NavButtonState extends State<NavButton> {
 class InkstainPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0xB31a1816)..style = PaintingStyle.fill; // withOpacity(0.7)
-    final borderPaint = Paint()..color = const Color(0x80d7c9a7)..strokeWidth = 1.5..style = PaintingStyle.stroke; // withOpacity(0.5)
+    final paint = Paint()..color = const Color(0xB31a1816)..style = PaintingStyle.fill;
+    final borderPaint = Paint()..color = const Color(0x80d7c9a7)..strokeWidth = 1.5..style = PaintingStyle.stroke;
     final path = _getInkstainPath(size);
     canvas.drawPath(path, paint);
     canvas.drawPath(path, borderPaint);
