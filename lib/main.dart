@@ -1,8 +1,6 @@
 
 import 'dart:ui';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
@@ -10,6 +8,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
+
+OverlayEntry? _contextMenuEntry;
+
+void _hideContextMenu() {
+  _contextMenuEntry?.remove();
+  _contextMenuEntry = null;
+}
 
 // --- データモデル & 状態管理 ---
 
@@ -98,6 +103,7 @@ class DesktopViewModel extends ChangeNotifier {
 
   DesktopViewModel() {
     _initializeDesktop();
+    _loadDesktopFiles();
   }
 
   void _initializeDesktop() {
@@ -107,6 +113,36 @@ class DesktopViewModel extends ChangeNotifier {
       DesktopItem(id: 'app-browser', type: DesktopItemType.app, name: 'ブラウザ', icon: Icons.language, position: const Offset(220, 100), command: _getBrowserCommand()),
     ]);
     notifyListeners();
+  }
+
+  Future<void> _loadDesktopFiles() async {
+    try {
+      final desktopPath = '${_getUserHome()}/Desktop';
+      final directory = Directory(desktopPath);
+      if (!await directory.exists()) {
+        // Desktop directory may not exist, which is fine.
+        return;
+      }
+
+      final files = await directory.list().toList();
+      final desktopItems = files.map((file) {
+        final type = file is File ? DesktopItemType.file : DesktopItemType.folder;
+        final name = file.path.split(Platform.pathSeparator).last;
+        return DesktopItem(
+          id: file.path, // Use path as a unique ID
+          type: type,
+          name: name,
+          icon: type == DesktopItemType.folder ? Icons.folder : Icons.article,
+          position: const Offset(0, 0), // Position will be set by arrangeInGrid
+          command: file.path,
+        );
+      }).toList();
+
+      _items.addAll(desktopItems);
+      arrangeInGrid(); // Arrange all items nicely
+    } catch (e) {
+      // Silently ignore errors, e.g. permission errors
+    }
   }
 
   void selectItem(String? itemId) {
@@ -223,22 +259,23 @@ class DesktopShell extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Listener(
-        onPointerDown: (_) => viewModel.selectItem(null),
-        child: GestureDetector(
-          onSecondaryTapDown: (details) => _showContextMenu(context, details, viewModel),
-          child: Stack(
-            children: [
-              BackgroundLayer(wallpaperPath: viewModel.settings.wallpaperPath),
-              if (viewModel.settings.showCharacter) CharacterLayer(characterPath: viewModel.settings.characterPath),
-              
-              ...viewModel.items.map((item) => DesktopIcon(item: item)),
+      body: GestureDetector(
+        onTap: () {
+          viewModel.selectItem(null);
+          _hideContextMenu();
+        },
+        onSecondaryTapDown: (details) => _showContextMenu(context, details.globalPosition, viewModel),
+        child: Stack(
+          children: [
+            BackgroundLayer(wallpaperPath: viewModel.settings.wallpaperPath),
+            if (viewModel.settings.showCharacter) CharacterLayer(characterPath: viewModel.settings.characterPath),
+            
+            ...viewModel.items.map((item) => DesktopIcon(item: item)),
 
-              ...viewModel.windows.map((window) => DraggableWindow(window: window)),
+            ...viewModel.windows.map((window) => DraggableWindow(window: window)),
 
-              const Positioned(top: 0, left: 0, right: 0, child: Taskbar()),
-            ],
-          ),
+            const Positioned(top: 0, left: 0, right: 0, child: Taskbar()),
+          ],
         ),
       ),
     );
@@ -263,8 +300,11 @@ class DesktopIcon extends StatelessWidget {
             top: item.position.dy,
             child: GestureDetector(
               onTap: () => viewModel.selectItem(item.id),
-              onSecondaryTapDown: (details) => _showContextMenu(context, details, viewModel, item: item),
-              onDoubleTap: () => _handleItemDoubleClick(item),
+              onSecondaryTapDown: (details) {
+                viewModel.selectItem(item.id);
+                _showContextMenu(context, details.globalPosition, viewModel, item: item);
+              },
+              onDoubleTap: () => _handleItemDoubleClick(context, item),
               child: Draggable<DesktopItem>(
                 data: item,
                 feedback: _DesktopIconWidget(item: item, isDragging: true),
@@ -295,7 +335,7 @@ class _DesktopIconWidget extends StatelessWidget {
         width: 100,
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: item.isSelected ? settings.themeColor.withOpacity(0.2) : Colors.transparent,
+          color: item.isSelected ? settings.themeColor.withAlpha(51) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: item.isSelected ? settings.themeColor : Colors.transparent,
@@ -341,10 +381,10 @@ class DraggableWindow extends StatelessWidget {
                 width: window.size.width,
                 height: window.size.height,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1a1816).withOpacity(0.9),
+                  color: const Color(0xFF1a1816).withAlpha(230),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: window.isFocused ? context.read<DesktopViewModel>().settings.themeColor : Colors.white.withOpacity(0.2)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30, spreadRadius: 5)],
+                  border: Border.all(color: window.isFocused ? context.read<DesktopViewModel>().settings.themeColor : Colors.white.withAlpha(51)),
+                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(128), blurRadius: 30, spreadRadius: 5)],
                 ),
                 child: Column(
                   children: [
@@ -399,24 +439,64 @@ class Taskbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<DesktopViewModel>();
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           height: 50,
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withAlpha(77),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: [
               const Text('SIST', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xffd7c9a7))),
-              const Spacer(),
+              const SizedBox(width: 20),
+              Expanded(
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: viewModel.windows.length,
+                  itemBuilder: (context, index) {
+                    final window = viewModel.windows[index];
+                    return TaskbarItem(window: window, onTap: () => viewModel.focusWindow(window.id));
+                  },
+                ),
+              ),
               const TopRightClock(),
-              const Spacer(),
+              const SizedBox(width: 20),
               IconButton(
                 icon: const Icon(Icons.power_settings_new),
                 onPressed: () => Process.run('shutdown', ['-h', 'now']),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TaskbarItem extends StatelessWidget {
+  final Window window;
+  final VoidCallback onTap;
+
+  const TaskbarItem({super.key, required this.window, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: window.isFocused ? Colors.white.withAlpha(51) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Center(
+          child: Text(
+            window.title,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -499,31 +579,50 @@ class _TopRightClockState extends State<TopRightClock> {
 
 // --- Utility Functions and Dialogs ---
 
-void _showContextMenu(BuildContext context, TapDownDetails details, DesktopViewModel viewModel, {DesktopItem? item}) {
+void _showContextMenu(BuildContext context, Offset position, DesktopViewModel viewModel, {DesktopItem? item}) {
+  _hideContextMenu(); // Ensure old menu is gone
   final overlay = Overlay.of(context);
-  OverlayEntry? entry;
 
   List<Widget> buildMenuItems() {
     if (item != null) {
       return [
-        _buildContextMenuItem(Icons.open_in_new, '開く', () => _handleItemDoubleClick(item)),
+        _buildContextMenuItem(Icons.open_in_new, '開く', () {
+          _handleItemDoubleClick(context, item);
+          _hideContextMenu();
+        }),
+        // Add more item-specific actions here if needed
       ];
     } else {
       return [
-        _buildContextMenuItem(Icons.sort, 'アイコンの整列', () => viewModel.arrangeInGrid()),
-        _buildContextMenuItem(Icons.wallpaper, '壁紙の変更', () => viewModel.changeWallpaper()),
-        _buildContextMenuItem(Icons.settings, '設定', () => _openSettings(context)),
+        _buildContextMenuItem(Icons.sort, 'アイコンの整列', () {
+          viewModel.arrangeInGrid();
+          _hideContextMenu();
+        }),
+        _buildContextMenuItem(Icons.wallpaper, '壁紙の変更', () {
+          viewModel.changeWallpaper();
+          _hideContextMenu();
+        }),
+        _buildContextMenuItem(Icons.settings, '設定', () {
+          _openSettings(context);
+          _hideContextMenu();
+        }),
       ];
     }
   }
 
-  entry = OverlayEntry(
-    builder: (context) => Stack(
+  _contextMenuEntry = OverlayEntry(
+    builder: (ctx) => Stack(
       children: [
-        GestureDetector(onTap: () => entry?.remove()),
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: _hideContextMenu,
+            onSecondaryTapDown: (_) => _hideContextMenu(),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
         Positioned(
-          left: details.globalPosition.dx,
-          top: details.globalPosition.dy,
+          left: position.dx,
+          top: position.dy,
           child: Material(
             color: Colors.transparent,
             child: ClipRRect(
@@ -533,10 +632,14 @@ void _showContextMenu(BuildContext context, TapDownDetails details, DesktopViewM
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
+                    color: Colors.black.withAlpha(204),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: buildMenuItems().map((e) => e).toList()),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: buildMenuItems(),
+                  ),
                 ),
               ),
             ),
@@ -545,8 +648,9 @@ void _showContextMenu(BuildContext context, TapDownDetails details, DesktopViewM
       ],
     ),
   );
-  overlay.insert(entry);
+  overlay.insert(_contextMenuEntry!);
 }
+
 
 Widget _buildContextMenuItem(IconData icon, String text, VoidCallback onTap) {
   return InkWell(
@@ -564,19 +668,24 @@ Widget _buildContextMenuItem(IconData icon, String text, VoidCallback onTap) {
   );
 }
 
-void _handleItemDoubleClick(DesktopItem item) {
+void _handleItemDoubleClick(BuildContext context, DesktopItem item) {
+  final viewModel = context.read<DesktopViewModel>();
   if (item.type == DesktopItemType.app) {
-    _launchApp(item.command);
-  } 
-}
-
-Future<void> _launchApp(String? command) async {
-  if (command == null || command.isEmpty) return;
-  try {
-    await Process.start(command, [], runInShell: true, mode: ProcessStartMode.detached);
-  } catch (e) {
-    // Consider showing an error dialog
-    print('Failed to launch app: $e');
+    // Open a window inside the app instead of launching an external process
+    final windowId = 'app-window-${item.id}';
+    if (viewModel.windows.any((w) => w.id == windowId)) {
+      viewModel.focusWindow(windowId);
+      return;
+    }
+    viewModel.openWindow(Window(
+      id: windowId,
+      title: item.name,
+      content: Center(child: Text('${item.name} is running.')), // Placeholder content
+    ));
+    // Optionally, you could still try to launch an external app
+    // _launchApp(item.command);
+  } else {
+    // Handle file/folder double clicks if necessary
   }
 }
 
@@ -605,6 +714,25 @@ class _SettingsScreen extends StatelessWidget {
 }
 
 // --- Platform-specific command getters ---
-String _getFileManagerCommand() => 'nautilus';
-String _getTerminalCommand() => 'gnome-terminal';
-String _getBrowserCommand() => 'firefox';
+// Updated for better cross-platform support, with Windows as a priority
+String _getFileManagerCommand() {
+  if (Platform.isWindows) return 'explorer';
+  if (Platform.isMacOS) return 'open .';
+  return 'nautilus'; // Linux fallback
+}
+
+String _getTerminalCommand() {
+  if (Platform.isWindows) return 'wt'; // Windows Terminal, or 'cmd'
+  if (Platform.isMacOS) return 'open -a Terminal';
+  return 'gnome-terminal'; // Linux fallback
+}
+
+String _getBrowserCommand() {
+  if (Platform.isWindows) return 'start chrome'; // Tries to open chrome
+  if (Platform.isMacOS) return 'open -a "Google Chrome"';
+  return 'firefox'; // Linux fallback
+}
+
+String _getUserHome() {
+  return Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.';
+}
