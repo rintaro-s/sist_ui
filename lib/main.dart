@@ -1,9 +1,11 @@
 
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:window_manager/window_manager.dart';
@@ -670,22 +672,37 @@ Widget _buildContextMenuItem(IconData icon, String text, VoidCallback onTap) {
 
 void _handleItemDoubleClick(BuildContext context, DesktopItem item) {
   final viewModel = context.read<DesktopViewModel>();
-  if (item.type == DesktopItemType.app) {
-    // Open a window inside the app instead of launching an external process
-    final windowId = 'app-window-${item.id}';
+  if (item.id == 'app-terminal') {
+    // Open the custom terminal window
+    final windowId = 'app-window-terminal';
     if (viewModel.windows.any((w) => w.id == windowId)) {
       viewModel.focusWindow(windowId);
       return;
     }
     viewModel.openWindow(Window(
       id: windowId,
-      title: item.name,
-      content: Center(child: Text('${item.name} is running.')), // Placeholder content
+      title: 'ターミナル',
+      content: const TerminalScreen(),
     ));
-    // Optionally, you could still try to launch an external app
-    // _launchApp(item.command);
+  } else if (item.type == DesktopItemType.app) {
+    // Launch external apps
+    _launchApp(item.command);
   } else {
-    // Handle file/folder double clicks if necessary
+    // Handle file/folder double clicks (e.g., open with default app)
+    _launchApp(item.command);
+  }
+}
+
+Future<void> _launchApp(String? command) async {
+  if (command == null || command.isEmpty) return;
+  try {
+    if (Platform.isWindows) {
+      await Process.start(command, [], runInShell: true);
+    } else {
+      await Process.start(command, [], runInShell: true, mode: ProcessStartMode.detached);
+    }
+  } catch (e) {
+    // Consider showing an error dialog
   }
 }
 
@@ -710,6 +727,169 @@ class _SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // A real settings screen would be more complex
     return const Center(child: Text('設定画面'));
+  }
+}
+
+class TerminalScreen extends StatefulWidget {
+  const TerminalScreen({super.key});
+
+  @override
+  State<TerminalScreen> createState() => _TerminalScreenState();
+}
+
+class _TerminalScreenState extends State<TerminalScreen> {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
+  final List<String> _output = [];
+  final List<String> _history = [];
+  int _historyIndex = 0;
+
+  // Command templates
+  final List<Map<String, String>> _templates = [
+    {'name': 'Update packages', 'command': 'sudo apt update && sudo apt upgrade -y'},
+    {'name': 'Install package', 'command': 'sudo apt install '},
+    {'name': 'List files', 'command': 'ls -la'},
+    {'name': 'Show disk space', 'command': 'df -h'},
+  ];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _runCommand(String command) {
+    if (command.isEmpty) return;
+
+    setState(() {
+      _output.add('> $command');
+      if (_history.isEmpty || _history.last != command) {
+        _history.add(command);
+      }
+      _historyIndex = _history.length;
+    });
+
+    // Run command in shell
+    final shell = Platform.isWindows ? 'cmd' : 'bash';
+    final args = Platform.isWindows ? ['/c', command] : ['-c', command];
+
+    Process.start(shell, args, workingDirectory: _getUserHome(), runInShell: true).then((process) {
+      process.stdout.transform(utf8.decoder).listen((data) {
+        setState(() {
+          _output.addAll(data.trim().split('\n'));
+          _scrollToBottom();
+        });
+      });
+      process.stderr.transform(utf8.decoder).listen((data) {
+        setState(() {
+          _output.addAll(data.trim().split('\n'));
+          _scrollToBottom();
+        });
+      });
+    }).catchError((e) {
+      setState(() {
+        _output.add('Error: $e');
+        _scrollToBottom();
+      });
+    });
+
+    _controller.clear();
+    _focusNode.requestFocus();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  void _navigateHistory(bool up) {
+    if (_history.isEmpty) return;
+    setState(() {
+      if (up) {
+        if (_historyIndex > 0) _historyIndex--;
+      } else {
+        if (_historyIndex < _history.length - 1) _historyIndex++;
+      }
+      _controller.text = _history[_historyIndex];
+      _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyboardListener(
+      focusNode: _focusNode,
+      onKeyEvent: (event) {
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+            _navigateHistory(true);
+          } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+            _navigateHistory(false);
+          }
+        }
+      },
+      child: Column(
+        children: [
+          // Template buttons
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: _templates.map((template) {
+                return ElevatedButton(
+                  onPressed: () {
+                    _controller.text = template['command']!;
+                    _focusNode.requestFocus();
+                    _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
+                  },
+                  child: Text(template['name']!),
+                );
+              }).toList(),
+            ),
+          ),
+          // Terminal output
+          Expanded(
+            child: Container(
+              color: Colors.black,
+              width: double.infinity,
+              padding: const EdgeInsets.all(8.0),
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: _output.length,
+                itemBuilder: (context, index) {
+                  return Text(
+                    _output[index],
+                    style: const TextStyle(fontFamily: 'monospace', color: Colors.white, fontSize: 12),
+                  );
+                },
+              ),
+            ),
+          ),
+          // Input field
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _controller,
+              onSubmitted: _runCommand,
+              autofocus: true,
+              style: const TextStyle(fontFamily: 'monospace', color: Colors.white),
+              decoration: const InputDecoration(
+                prefixText: '> ',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
