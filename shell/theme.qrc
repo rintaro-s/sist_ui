@@ -1,0 +1,26 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/theme">
+    <file>theme_assets/desktop/wallpaper.png</file>
+    <file>theme_assets/desktop/taskbar_background.png</file>
+    <file>theme_assets/window/window_titlebar_background.png</file>
+    <file>theme_assets/window/window_close_normal.png</file>
+    <file>theme_assets/window/window_close_hover.png</file>
+    <file>theme_assets/window/window_close_pressed.png</file>
+    <file>theme_assets/window/window_maximize_normal.png</file>
+    <file>theme_assets/window/window_maximize_hover.png</file>
+    <file>theme_assets/window/window_maximize_pressed.png</file>
+    <file>theme_assets/window/window_minimize_normal.png</file>
+    <file>theme_assets/window/window_minimize_hover.png</file>
+    <file>theme_assets/window/window_minimize_pressed.png</file>
+    <file>theme_assets/icons/icon_app_default.png</file>
+    <file>theme_assets/icons/icon_folder.png</file>
+    <file>theme_assets/icons/icon_file_document.png</file>
+    <file>theme_assets/icons/icon_terminal.png</file>
+    <file>theme_assets/icons/icon_settings.png</file>
+    <file>theme_assets/cursors/cursor_default.png</file>
+    <file>theme_assets/cursors/cursor_hand.png</file>
+    <file>theme_assets/cursors/cursor_text.png</file>
+    <file>theme_assets/cursors/cursor_resize.png</file>
+    <file>theme_assets/cursors/cursor_busy.png</file>
+</qresource>
+</RCC>

@@ -1,79 +1,39 @@
 # SIST UI
 
-SIST UIは、Flutterで構築された、美しくカスタマイズ可能なデスクトップ環境のプロトタイプです。
-Linuxデスクトップ環境の新しい可能性を探るために開発されました。
+A custom desktop environment inspired by the aesthetic of "Memento Mori", built with Qt/QML and Flutter.
 
-## ✨ 主な機能
+## Overview
 
-- **モダンなデスクトップUI:** 滑らかなアニメーションと、透明感のあるデザインを取り入れた、直感的なデスクトップ体験を提供します。
-- **アプリケーションランチャー:** デスクトップ上のアイコンや、スタイリッシュなタスクバーから、簡単にアプリケーションを起動できます。
-- **ウィンドウ管理:** アプリケーションは独立したウィンドウとして開かれ、ドラッグして自由に配置できます。
-- **カスタマイズ性:**
-    - **壁紙変更:** お気に入りの画像をデスクトップの壁紙に設定できます。
-    - **アイコン:** アイコンのサイズや配置を自由に変更できます。
-    - **テーマカラー:** アクセントカラーを変更して、自分だけのデスクトップを作成できます。（今後の実装予定）
-- **基本的なデスクトップ機能:**
-    - ファイルやフォルダの作成、名前の変更、削除
-    - 右クリックによるコンテキストメニュー
-    - 時計表示
+SIST UI is a desktop shell that provides a unique user experience with a dark, gothic, and painterly aesthetic. The core shell, including the taskbar and window management, is built with Qt/QML for performance and flexibility. Applications within the environment are built with Flutter, allowing for beautiful and high-performance UIs.
 
-## 🛠️ セットアップと実行
+## Features
 
-### 前提条件
+*   **"Memento Mori" Inspired UI:** A dark and beautiful UI that is a complete reproduction of the game "Memento Mori".
+*   **Hybrid Architecture:** A combination of Qt/QML for the shell and Flutter for applications.
+*   **Custom Taskbar:** A custom taskbar that displays open applications.
+*   **Built-in Terminal:** A terminal with command templates and history.
 
-- Flutter SDK (安定版)
-- Linux環境 (開発はUbuntuでテストされています)
-- `openbox` (ウィンドウマネージャとして利用)
+## Getting Started
 
-### インストール
+### Prerequisites
 
-1. **リポジトリをクローンします:**
-   ```bash
-   git clone https://github.com/s-rin/sist_ui.git
-   cd sist_ui
-   ```
+*   Flutter
+*   Qt 6
+*   A C++ compiler
+*   make
 
-2. **Flutterパッケージを取得します:**
-   ```bash
-   flutter pub get
-   ```
+### Build and Run
 
-3. **アプリケーションをビルドします:**
-   ```bash
-   flutter build linux
-   ```
+1.  **Build the Qt/QML shell:**
+    ```bash
+    mkdir -p shell/build
+    cd shell/build
+    qmake ../
+    make
+    ```
+2.  **Run the custom session:**
+    ```bash
+    ./deploy.sh
+    ```
 
-### デプロイと実行
-
-付属のデプロイスクリプトを使用して、ビルドしたアプリケーションと設定ファイルを適切な場所に配置します。
-
-```bash
-./deploy.sh
-```
-
-このスクリプトは、主に以下の処理を行います。
-
-1. Flutterアプリケーションをビルドします。
-2. ビルドされたファイルを `/opt/sist_ui` にコピーします。
-3. Openboxの設定ファイル `rc.xml` を `~/.config/openbox/` に配置します。
-
-デプロイ後、システムに自動ログインを設定し、再起動してください。
-
-```bash
-   sudo reboot
-   ```
-
-## 今後の展望
-
-- 高機能なファイルマネージャーの実装
-- テーマ設定機能（ライト/ダークモード、カスタムカラー）
-- ウィジェットのサポート（天気、カレンダーなど）
-- プラグインシステムによる機能拡張
-
-## 🙏 貢献
-
-バグ報告、機能提案、プルリクエストを歓迎します。問題があれば、お気軽にIssueを立ててください。
-
-
-10 日　11~14:30 4~8
-11   11~16
+This will build the shell and start the custom desktop environment.

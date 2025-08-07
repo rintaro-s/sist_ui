@@ -1,13 +1,4 @@
-#!/bin/bash
-# --- Sist OS Session Script ---
-
-# 描画の乱れを防ぐため、コンポジタ(picom)を起動
-# --experimental-backends をつけることで、より多くの環境で動作しやすくなる
-picom --experimental-backends & 
-
-# Openboxウィンドウマネージャをバックグラウンドで起動
-openbox --config-file ~/.config/openbox/rc.xml &
-
-# Flutterデスクトップシェルを起動
-# これがデスクトップの背景、アイコン、タスクバーの役割を担う
-/opt/sist_ui/sist_ui
+[Desktop Entry]
+Name=SIST Session
+Exec=./deploy.sh
+Type=Application
