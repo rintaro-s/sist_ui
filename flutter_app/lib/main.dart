@@ -1,75 +1,80 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 void main() {
-  runApp(const TerminalApp());
+  runApp(const SettingsApp());
 }
 
-class TerminalApp extends StatelessWidget {
-  const TerminalApp({super.key});
+class SettingsApp extends StatelessWidget {
+  const SettingsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'SIST Terminal',
+      title: 'SIST Settings',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.grey[900],
-        scaffoldBackgroundColor: Colors.grey[850],
+        primaryColor: const Color(0xFF1A1A1A), // Dark background
+        scaffoldBackgroundColor: const Color(0xFF1A1A1A),
         fontFamily: 'KTEGAKI',
         textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white70),
+          displayLarge: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          displayMedium: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          displaySmall: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          headlineLarge: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          headlineMedium: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          headlineSmall: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          titleLarge: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          titleMedium: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          titleSmall: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          bodyLarge: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          bodyMedium: TextStyle(color: Colors.white70, fontFamily: 'KTEGAKI'),
+          bodySmall: TextStyle(color: Colors.white54, fontFamily: 'KTEGAKI'),
+          labelLarge: TextStyle(color: Colors.white, fontFamily: 'KTEGAKI'),
+          labelMedium: TextStyle(color: Colors.white70, fontFamily: 'KTEGAKI'),
+          labelSmall: TextStyle(color: Colors.white54, fontFamily: 'KTEGAKI'),
         ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.grey[900],
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF2A2A2A), // Slightly lighter AppBar
           foregroundColor: Colors.white,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey[700],
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          elevation: 0,
+          titleTextStyle: TextStyle(
+            fontFamily: 'KTEGAKI',
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.grey[900],
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-          hintStyle: TextStyle(color: Colors.white54),
+        listTileTheme: ListTileThemeData(
+          tileColor: const Color(0xFF2A2A2A), // Background for list tiles
+          textColor: Colors.white,
+          iconColor: const Color(0xFFFFD700), // Gold accent for icons
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          minVerticalPadding: 15,
         ),
+        cardTheme: CardTheme(
+          color: const Color(0xFF2A2A2A),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          elevation: 5,
+          shadowColor: Colors.black.withOpacity(0.5),
+        ),
+        dividerColor: Colors.white.withOpacity(0.1),
       ),
-      home: const TerminalScreen(),
+      home: const SettingsScreen(),
     );
   }
 }
 
-class TerminalScreen extends StatefulWidget {
-  const TerminalScreen({super.key});
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
 
   @override
-  State<TerminalScreen> createState() => _TerminalScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _TerminalScreenState extends State<TerminalScreen> {
-  final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final FocusNode _focusNode = FocusNode();
-  final List<String> _output = [];
-  final List<String> _history = [];
-  int _historyIndex = 0;
-
-  // Command templates
-  final List<Map<String, String>> _templates = [
-    {'name': 'Update packages', 'command': 'sudo apt update && sudo apt upgrade -y'},
-    {'name': 'Install package', 'command': 'sudo apt install '},
-    {'name': 'List files', 'command': 'ls -la'},
-    {'name': 'Show disk space', 'command': 'df -h'},
-  ];
-
+class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
@@ -77,127 +82,97 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   Future<void> _loadFont() async {
+    // Ensure the custom font is loaded
     await FontLoader('KTEGAKI').load();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _scrollController.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _runCommand(String command) {
-    if (command.isEmpty) return;
-
-    setState(() {
-      _output.add('> $command');
-      if (_history.isEmpty || _history.last != command) {
-        _history.add(command);
-      }
-      _historyIndex = _history.length;
-    });
-
-    // Run command in shell
-    final shell = Platform.isWindows ? 'cmd' : 'bash';
-    final args = Platform.isWindows ? ['/c', command] : ['-c', command];
-
-    Process.start(shell, args, workingDirectory: _getUserHome(), runInShell: true).then((process) {
-      process.stdout.transform(utf8.decoder).listen((data) {
-        setState(() {
-          _output.addAll(data.trim().split('\n'));
-          _scrollToBottom();
-        });
-      });
-      process.stderr.transform(utf8.decoder).listen((data) {
-        setState(() {
-          _output.addAll(data.trim().split('\n'));
-          _scrollToBottom();
-        });
-      });
-    }).catchError((e) {
-      setState(() {
-        _output.add('Error: $e');
-        _scrollToBottom();
-      });
-    });
-
-    _controller.clear();
-    _focusNode.requestFocus();
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('設定'),
+        centerTitle: true,
+      ),
       body: Stack(
         children: [
-          // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/wallpaper.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Column(
+          // Background Image (optional, if you want a different background for settings)
+          // Positioned.fill(
+          //   child: Image.asset(
+          //     'assets/wallpaper.png',
+          //     fit: BoxFit.cover,
+          //   ),
+          // ),
+          ListView(
+            padding: const EdgeInsets.all(20.0),
             children: [
-              // Template buttons
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Wrap(
-                  spacing: 8.0,
-                  runSpacing: 4.0,
-                  children: _templates.map((template) {
-                    return ElevatedButton(
-                      onPressed: () {
-                        _controller.text = template['command']!;
-                        _focusNode.requestFocus();
-                        _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
-                      },
-                      child: Text(template['name']!),
-                    );
-                  }).toList(),
-                ),
-              ),
-              // Terminal output
-              Expanded(
-                child: Container(
-                  color: Colors.black.withAlpha((255 * 0.7).round()), // Semi-transparent background
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    itemCount: _output.length,
-                    itemBuilder: (context, index) {
-                      return Text(
-                        _output[index],
-                        style: const TextStyle(fontFamily: 'monospace', color: Colors.white, fontSize: 12),
-                      );
-                    },
+              _buildSettingsSection(
+                context,
+                '一般',
+                [
+                  _buildSettingsTile(
+                    context,
+                    Icons.display_settings,
+                    'ディスプレイ',
+                    '画面の解像度、明るさなどを設定します',
+                    () { /* Navigate to Display Settings */ },
                   ),
-                ),
-              ),
-              // Input field
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextField(
-                  controller: _controller,
-                  onSubmitted: _runCommand,
-                  autofocus: true,
-                  style: const TextStyle(fontFamily: 'monospace', color: Colors.white),
-                  decoration: const InputDecoration(
-                    prefixText: '> ',
-                    isDense: true,
+                  _buildSettingsTile(
+                    context,
+                    Icons.volume_up,
+                    'サウンド',
+                    '音量、出力デバイスなどを設定します',
+                    () { /* Navigate to Sound Settings */ },
                   ),
-                ),
+                  _buildSettingsTile(
+                    context,
+                    Icons.mouse,
+                    'マウス＆タッチパッド',
+                    'ポインター速度、スクロール方向などを設定します',
+                    () { /* Navigate to Mouse Settings */ },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              _buildSettingsSection(
+                context,
+                'ネットワーク',
+                [
+                  _buildSettingsTile(
+                    context,
+                    Icons.wifi,
+                    'Wi-Fi',
+                    'ワイヤレスネットワークに接続します',
+                    () { /* Navigate to Wi-Fi Settings */ },
+                  ),
+                  _buildSettingsTile(
+                    context,
+                    Icons.lan,
+                    '有線ネットワーク',
+                    '有線接続の設定を行います',
+                    () { /* Navigate to Wired Settings */ },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+              _buildSettingsSection(
+                context,
+                'システム',
+                [
+                  _buildSettingsTile(
+                    context,
+                    Icons.info,
+                    'バージョン情報',
+                    'OSのバージョン、システム情報などを確認します',
+                    () { /* Navigate to About System */ },
+                  ),
+                  _buildSettingsTile(
+                    context,
+                    Icons.update,
+                    'ソフトウェアアップデート',
+                    'システムの更新を確認します',
+                    () { /* Navigate to Software Update */ },
+                  ),
+                ],
               ),
             ],
           ),
@@ -205,8 +180,57 @@ class _TerminalScreenState extends State<TerminalScreen> {
       ),
     );
   }
-}
 
-String _getUserHome() {
-  return Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.';
+  Widget _buildSettingsSection(BuildContext context, String title, List<Widget> tiles) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 10.0, bottom: 10.0),
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: const Color(0xFFFFD700), // Gold for section titles
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        Card(
+          margin: EdgeInsets.zero,
+          child: Column(
+            children: tiles.map((tile) {
+              return Column(
+                children: [
+                  tile,
+                  if (tile != tiles.last) const Divider(height: 1, indent: 20, endIndent: 20), // Divider between tiles
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingsTile(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      leading: Icon(icon, size: 30),
+      title: Text(title, style: Theme.of(context).textTheme.titleMedium),
+      subtitle: Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+      trailing: const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.white54),
+      onTap: () {
+        // Add a subtle visual feedback on tap
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      // Add a subtle hover effect for desktop
+      hoverColor: Colors.white.withOpacity(0.05),
+    );
+  }
 }

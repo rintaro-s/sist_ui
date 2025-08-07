@@ -19,5 +19,7 @@
     <file>theme_assets/window/window_minimize_pressed.png</file>
     <file>theme_assets/window/window_titlebar_background.png</file>
     <file>../flutter_app/assets/fonts/KTEGAKI.ttf</file>
+    <file>sounds/click.wav</file>
+    <file>sounds/select.wav</file>
 </qresource>
 </RCC>

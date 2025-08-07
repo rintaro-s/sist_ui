@@ -1,3 +1,5 @@
 shell/build/sist-ui usr/bin/
-flutter_app/build/linux/x64/release/bundle/* usr/share/sist-ui/
+flutter_app/build/linux/x64/release/bundle/sist_ui usr/lib/sist-ui/flutter_app/
+theme_assets usr/share/sist-ui/
 sist-session usr/share/xsessions/
+debian/sist-settings.desktop usr/share/applications/

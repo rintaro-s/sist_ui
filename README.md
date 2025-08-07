@@ -1,6 +1,6 @@
 # SIST UI
 
-ソシャゲのUIの美学にインスパイアされたカスタムDE。Qt/QMLとFlutterで構築。
+「ブルーアーカイブ」のUI美学にインスパイアされたカスタムデスクトップシェル。Qt/QMLとFlutterで構築。
 
 ## コンセプト：「ソシャゲのように直感的で簡単に操作できる」
 
@@ -8,39 +8,43 @@ SIST UIは、スマホのソシャゲのように直感的で使いやすい新�
 
 ## 概要
 
-SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデスクトップシェルです。タスクバーやウィンドウ管理などのコアシェルはQt/QMLで構築され、パフォーマンスと柔軟性を両立。環境内のアプリケーションはFlutterで作られており、美しく高性能なUIを実現しています。
+SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデスクトップシェルです。既存のXfceなどのデスクトップ環境上で動作し、そのUIを完全に置き換えることで、パフォーマンスと柔軟性を両立しています。環境内のアプリケーションはFlutterで作られており、美しく高性能なUIを実現しています。
 
 ## 主な機能
 
-*   **「メメントモリ」風UI**：スマホゲーム「メメントモリ」を完全再現したダークで美しいUI。
+*   **「ブルーアーカイブ」風UI**：キャラクターのアイドルアニメーション、背景のパララックス効果とブラー、UI要素のグロー効果や弾むようなアニメーションなど、ゲームのようなリッチな視覚体験を提供します。
+*   **動的アプリケーションランチャー**：システムにインストールされているGUIアプリケーションを自動的に検出し、カルーセル形式で表示します。マウスホイールやキーボードの矢印キーで直感的に操作できます。
 *   **ハイブリッド構成**：シェルはQt/QML、アプリはFlutterで構築。
 *   **カスタムタスクバー**：開いているアプリケーションを表示する独自タスクバー。
-*   **内蔵ターミナル**：コマンドテンプレートや履歴機能付きのターミナル。
+*   **システム情報HUD**：CPUとメモリの使用率をリアルタイムで表示します。
+*   **サウンドエフェクト**：UI操作に合わせたサウンドエフェクトが、操作の楽しさを高めます。
+*   **内蔵ターミナル**：コマンドテンプレートや履歴機能付きのターミナル（**今後の実装予定**）。
 
 ## はじめかた
 
 ### 必要なもの
 
 *   Flutter SDK（stableチャンネル）
-*   Qt 6（Qt QuickとQt Widgetsモジュール）
+*   Qt 6（Qt Quick, Qt Widgets, Qt Graphical Effects, Qt Multimedia モジュール）
 *   C++コンパイラ（g++推奨）
 *   make
 *   dpkg-dev（.debパッケージ作成用）
 *   **qmakeのバージョン:** `qmake`が不安定な場合は、`qmake6`を使用してください。
-*   **外部アプリケーション:** 全ての機能を活用するには、以下のアプリケーションがシステムにインストールされている必要があります。
-    *   `chromium-browser` (または `google-chrome`, `firefox`)
-    *   `nautilus` (または `dolphin`, `thunar`)
+*   **外部アプリケーション:** アプリケーション起動には、`xdg-open`が使用されます。これにより、システムのデフォルトブラウザやファイルマネージャが起動します。ターミナルは、`xfce4-terminal`, `konsole`, `gnome-terminal`などを優先的に起動します。
 
 ### ビルドと実行（Ubuntu/Linuxの場合）
 
-1.  **Flutterアプリケーションのビルド:**
+1.  **サウンドファイルの準備:**
+    `shell/sounds/`ディレクトリに、`click.wav`と`select.wav`という名前のサウンドファイルを配置してください。これらのファイルがないと、サウンドエフェクトは再生されません。
+
+2.  **Flutterアプリケーションのビルド:**
     ```bash
     cd flutter_app
     flutter build linux
     cd ..
     ```
 
-2.  **Qt/QMLシェルのビルド:**
+3.  **Qt/QMLシェルのビルド:**
     ```bash
     mkdir -p shell/build
     cd shell/build
@@ -49,7 +53,7 @@ SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデ�
     cd ../..
     ```
 
-3.  **カスタムセッションの起動（パッケージ化せずに直接実行）:**
+4.  **カスタムセッションの起動（パッケージ化せずに直接実行）:**
     ```bash
     ./shell/build/sist-ui
     ```
@@ -72,4 +76,4 @@ sudo dpkg -i <package_name>.deb
 
 **トラブルシューティング:**
 
-*   `apt build-dep .`で依存関係の解決に失敗する場合、`debian/control`に記述されているパッケージ名が、お使いのUbuntu環境で利用可能なものと異なる可能性があります。その場合は、手動で必要なパッケージをインストールしてください。例えば、`sudo apt install qt6-base-dev qt6-declarative-dev`や、QMLモジュールが見つからない場合は`sudo apt install qml6-module-qtquick-controls qml6-module-qtquick-layouts`のように実行します。
+*   `apt build-dep .`で依存関係の解決に失敗する場合、`debian/control`に記述されているパッケージ名が、お使いのUbuntu環境で利用可能なものと異なる可能性があります。その場合は、手動で必要なパッケージをインストールしてください。例えば、`sudo apt install qt6-base-dev qt6-declarative-dev qt6-graphicaleffects-dev qt6-multimedia-dev`や、QMLモジュールが見つからない場合は`sudo apt install qml6-module-qtquick-controls qml6-module-qtquick-layouts`のように実行します。

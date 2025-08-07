@@ -1,4 +1,4 @@
-QT += quick core
+QT += quick core graphicaleffects multimedia
 
 TARGET = sist-ui
 

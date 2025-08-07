@@ -43,26 +43,29 @@ Window {
 
                 // Buttons
                 Button {
+                    id: minimizeButton
                     width: 32
                     height: 32
                     background: Image {
-                        source: "qrc:/theme/theme_assets/window/window_minimize_normal.png"
+                        source: minimizeButton.pressed ? "qrc:/theme/theme_assets/window/window_minimize_pressed.png" : (minimizeButton.hovered ? "qrc:/theme/theme_assets/window/window_minimize_hover.png" : "qrc:/theme/theme_assets/window/window_minimize_normal.png")
                     }
                     onClicked: window.showMinimized()
                 }
                 Button {
+                    id: maximizeButton
                     width: 32
                     height: 32
                     background: Image {
-                        source: "qrc:/theme/theme_assets/window/window_maximize_normal.png"
+                        source: maximizeButton.pressed ? "qrc:/theme/theme_assets/window/window_maximize_pressed.png" : (maximizeButton.hovered ? "qrc:/theme/theme_assets/window/window_maximize_hover.png" : "qrc:/theme/theme_assets/window/window_maximize_normal.png")
                     }
                     onClicked: window.visibility === Window.Maximized ? window.showNormal() : window.showMaximized()
                 }
                 Button {
+                    id: closeButton
                     width: 32
                     height: 32
                     background: Image {
-                        source: "qrc:/theme/theme_assets/window/window_close_normal.png"
+                        source: closeButton.pressed ? "qrc:/theme/theme_assets/window/window_close_pressed.png" : (closeButton.hovered ? "qrc:/theme/theme_assets/window/window_close_hover.png" : "qrc:/theme/theme_assets/window/window_close_normal.png")
                     }
                     onClicked: window.close()
                 }
