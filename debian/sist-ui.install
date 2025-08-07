@@ -1,0 +1,3 @@
+shell/build/sist-ui usr/bin/
+flutter_app/build/linux/x64/release/bundle/* usr/share/sist-ui/
+sist-session usr/share/xsessions/

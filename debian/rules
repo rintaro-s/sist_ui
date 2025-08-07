@@ -13,13 +13,7 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	$(MAKE) -C shell/build
 
-override_dh_auto_install:
-	mkdir -p debian/sist-ui/usr/bin
-	cp shell/build/sist-ui debian/sist-ui/usr/bin/
-	mkdir -p debian/sist-ui/usr/share/sist-ui/flutter_app
-	cp -r flutter_app/build/linux/x64/release/bundle debian/sist-ui/usr/share/sist-ui/flutter_app/
-	mkdir -p debian/sist-ui/usr/share/xsessions
-	cp sist-session debian/sist-ui/usr/share/xsessions/
+override_dh_dwz:
 
 override_dh_strip:
 	dh_strip --exclude=usr/share/sist-ui/flutter_app/bundle/flutter_assets
