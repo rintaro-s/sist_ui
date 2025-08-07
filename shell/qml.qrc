@@ -1,7 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="/">
     <file>main.qml</file>
-    <file>wallpaper.png</file>
     <file>theme_assets/desktop/wallpaper.png</file>
     <file>theme_assets/desktop/taskbar_background.png</file>
     <file>theme_assets/icons/icon_app_default.png</file>

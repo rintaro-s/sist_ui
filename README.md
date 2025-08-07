@@ -44,14 +44,14 @@ SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデ�
     ```bash
     mkdir -p shell/build
     cd shell/build
-    qmake6 ../shell/shell.pro # qmake6を使用
+    qmake6 ../shell.pro # qmake6を使用
     make
     cd ../..
     ```
 
-3.  **カスタムセッションの起動:**
+3.  **カスタムセッションの起動（パッケージ化せずに直接実行）:**
     ```bash
-    ./deploy.sh
+    ./shell/build/sist-ui
     ```
 
 ### .debパッケージの作成
@@ -62,6 +62,7 @@ FlutterアプリとQt/QMLシェルを上記の手順でビルドした後、プ�
 # このコマンドは今後deploy.shで自動化されます
 dpkg-buildpackage -us -uc
 ```
+
 
 これで親ディレクトリに`.deb`ファイルが生成されます。インストールは以下のコマンドで行えます。
 

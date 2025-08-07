@@ -9,7 +9,7 @@ Backend::Backend(QQmlEngine *engine, QObject *parent) : QObject(parent), m_engin
 
 void Backend::launchTerminal()
 {
-    QString flutterAppPath = QDir::cleanPath("/usr/share/sist-ui/flutter_app/bundle/sist_ui");
+    QString flutterAppPath = QDir::cleanPath(QCoreApplication::applicationDirPath() + "/../../flutter_app/build/linux/x64/release/bundle/sist_ui");
     QProcess *process = new QProcess(this);
     process->start(flutterAppPath);
     // Optionally, connect to finished signal to clean up or log
