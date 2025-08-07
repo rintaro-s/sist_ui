@@ -54,13 +54,13 @@ class SettingsApp extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           minVerticalPadding: 15,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: const Color(0xFF2A2A2A),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           elevation: 5,
-          shadowColor: Colors.black.withOpacity(0.5),
+          shadowColor: Colors.black.withValues(alpha: 0.5),
         ),
-        dividerColor: Colors.white.withOpacity(0.1),
+        dividerColor: Colors.white.withValues(alpha: 0.1),
       ),
       home: const SettingsScreen(),
     );
@@ -230,7 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap();
       },
       // Add a subtle hover effect for desktop
-      hoverColor: Colors.white.withOpacity(0.05),
+      hoverColor: Colors.white.withValues(alpha: 0.05),
     );
   }
 }

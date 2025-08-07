@@ -1,4 +1,5 @@
 QT += quick core graphicaleffects multimedia
+CONFIG += warnings
 
 TARGET = sist-ui
 
