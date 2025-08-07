@@ -1,0 +1,13 @@
+Source: sist-ui
+Section: unknown
+Priority: optional
+Maintainer: Your Name <your.email@example.com>
+Build-Depends: debhelper-compat (= 13), qt6-base-dev, qt6-qml-dev, flutter
+Standards-Version: 4.6.0
+Homepage: https://github.com/yourusername/sist_ui
+
+Package: sist-ui
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, flutter-engine
+Description: A custom desktop environment inspired by Memento Mori.
+ A desktop shell built with Qt/QML and Flutter, offering a unique and intuitive user experience.

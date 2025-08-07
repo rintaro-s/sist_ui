@@ -1,0 +1,29 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_PROFILES := nodoc
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	cd flutter_app && flutter build linux
+	mkdir -p shell/build
+	cd shell/build && qmake ../shell/shell.pro
+
+override_dh_auto_build:
+	$(MAKE) -C shell/build
+
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p $(DESTDIR)/usr/bin
+	cp shell/build/sist-ui $(DESTDIR)/usr/bin/
+	mkdir -p $(DESTDIR)/usr/share/sist-ui/flutter_app
+	cp -r flutter_app/build/linux/x64/release/bundle $(DESTDIR)/usr/share/sist-ui/flutter_app/
+	mkdir -p $(DESTDIR)/usr/share/xsessions
+	cp sist-session $(DESTDIR)/usr/share/xsessions/
+
+override_dh_strip:
+	dh_strip --exclude=usr/share/sist-ui/flutter_app/bundle/flutter_assets
+
+override_dh_shlibdeps:
+	dh_shlibdeps --exclude=usr/share/sist-ui/flutter_app/bundle/libflutter_linux_gtk.so

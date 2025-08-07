@@ -1,39 +1,66 @@
 # SIST UI
 
-A custom desktop environment inspired by the aesthetic of "Memento Mori", built with Qt/QML and Flutter.
+「メメントモリ」（スマホゲーム）の美学にインスパイアされたカスタムデスクトップ環境。Qt/QMLとFlutterで構築。
 
-## Overview
+## コンセプト：「ソシャゲのように直感的で簡単に操作できる」
 
-SIST UI is a desktop shell that provides a unique user experience with a dark, gothic, and painterly aesthetic. The core shell, including the taskbar and window management, is built with Qt/QML for performance and flexibility. Applications within the environment are built with Flutter, allowing for beautiful and high-performance UIs.
+SIST UIは、スマホのソシャゲのように直感的で使いやすい新しいデスクトップ体験を提供します。ビジュアルの美しさとシンプルな操作性を重視し、複雑なデスクトップ操作も簡単で楽しく感じられるよう設計されています。
 
-## Features
+## 概要
 
-*   **"Memento Mori" Inspired UI:** A dark and beautiful UI that is a complete reproduction of the game "Memento Mori".
-*   **Hybrid Architecture:** A combination of Qt/QML for the shell and Flutter for applications.
-*   **Custom Taskbar:** A custom taskbar that displays open applications.
-*   **Built-in Terminal:** A terminal with command templates and history.
+SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデスクトップシェルです。タスクバーやウィンドウ管理などのコアシェルはQt/QMLで構築され、パフォーマンスと柔軟性を両立。環境内のアプリケーションはFlutterで作られており、美しく高性能なUIを実現しています。
 
-## Getting Started
+## 主な機能
 
-### Prerequisites
+*   **「メメントモリ」風UI**：スマホゲーム「メメントモリ」を完全再現したダークで美しいUI。
+*   **ハイブリッド構成**：シェルはQt/QML、アプリはFlutterで構築。
+*   **カスタムタスクバー**：開いているアプリケーションを表示する独自タスクバー。
+*   **内蔵ターミナル**：コマンドテンプレートや履歴機能付きのターミナル。
 
-*   Flutter
-*   Qt 6
-*   A C++ compiler
+## はじめかた
+
+### 必要なもの
+
+*   Flutter SDK（stableチャンネル）
+*   Qt 6（Qt QuickとQt Widgetsモジュール）
+*   C++コンパイラ（g++推奨）
 *   make
+*   dpkg-dev（.debパッケージ作成用）
 
-### Build and Run
+### ビルドと実行（Ubuntu/Linuxの場合）
 
-1.  **Build the Qt/QML shell:**
+1.  **Flutterアプリケーションのビルド:**
+    ```bash
+    cd flutter_app
+    flutter build linux
+    cd ..
+    ```
+
+2.  **Qt/QMLシェルのビルド:**
     ```bash
     mkdir -p shell/build
     cd shell/build
-    qmake ../
+    qmake ../shell/shell.pro
     make
+    cd ../..
     ```
-2.  **Run the custom session:**
+
+3.  **カスタムセッションの起動:**
     ```bash
     ./deploy.sh
     ```
 
-This will build the shell and start the custom desktop environment.
+### .debパッケージの作成
+
+FlutterアプリとQt/QMLシェルを上記の手順でビルドした後、プロジェクトルートで以下のコマンドを実行してください。
+
+```bash
+# このコマンドは今後deploy.shで自動化されます
+dpkg-buildpackage -us -uc
+```
+
+これで親ディレクトリに`.deb`ファイルが生成されます。インストールは以下のコマンドで行えます。
+
+```bash
+sudo dpkg -i <package_name>.deb
+```

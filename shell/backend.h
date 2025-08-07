@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <QQmlEngine>
-#include "flutter_embedder.h"
 
 class Backend : public QObject
 {
@@ -14,10 +13,7 @@ public:
     Q_INVOKABLE void launchTerminal();
 
 private:
-    void createWindow(const QString &title, const QString &projectPath, const QString& icuDataPath);
-
     QQmlEngine *m_engine;
-    FlutterEmbedder m_flutterEmbedder;
 };
 
 #endif // BACKEND_H

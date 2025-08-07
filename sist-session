@@ -1,4 +1,5 @@
 [Desktop Entry]
-Name=SIST Session
-Exec=./deploy.sh
+Name=SIST UI
+Comment=A custom desktop environment inspired by Memento Mori.
+Exec=/usr/bin/sist-ui
 Type=Application

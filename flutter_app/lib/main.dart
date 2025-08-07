@@ -14,8 +14,34 @@ class TerminalApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Terminal',
-      theme: ThemeData.dark(),
+      title: 'SIST Terminal',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: Colors.grey[900],
+        scaffoldBackgroundColor: Colors.grey[850],
+        fontFamily: 'KTEGAKI',
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white70),
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey[900],
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey[700],
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey[900],
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+          hintStyle: TextStyle(color: Colors.white54),
+        ),
+      ),
       home: const TerminalScreen(),
     );
   }
@@ -43,6 +69,16 @@ class _TerminalScreenState extends State<TerminalScreen> {
     {'name': 'List files', 'command': 'ls -la'},
     {'name': 'Show disk space', 'command': 'df -h'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFont();
+  }
+
+  Future<void> _loadFont() async {
+    await FontLoader('KTEGAKI').load();
+  }
 
   @override
   void dispose() {
@@ -99,88 +135,73 @@ class _TerminalScreenState extends State<TerminalScreen> {
     });
   }
 
-  void _navigateHistory(bool up) {
-    if (_history.isEmpty) return;
-    setState(() {
-      if (up) {
-        if (_historyIndex > 0) _historyIndex--;
-      } else {
-        if (_historyIndex < _history.length - 1) _historyIndex++;
-      }
-      _controller.text = _history[_historyIndex];
-      _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: _focusNode,
-      onKeyEvent: (event) {
-        if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-            _navigateHistory(true);
-          } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-            _navigateHistory(false);
-          }
-        }
-      },
-      child: Scaffold(
-        body: Column(
-          children: [
-            // Template buttons
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Wrap(
-                spacing: 8.0,
-                runSpacing: 4.0,
-                children: _templates.map((template) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      _controller.text = template['command']!;
-                      _focusNode.requestFocus();
-                      _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
-                    },
-                    child: Text(template['name']!),
-                  );
-                }).toList(),
-              ),
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/wallpaper.png',
+              fit: BoxFit.cover,
             ),
-            // Terminal output
-            Expanded(
-              child: Container(
-                color: Colors.black,
-                width: double.infinity,
+          ),
+          Column(
+            children: [
+              // Template buttons
+              Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: _output.length,
-                  itemBuilder: (context, index) {
-                    return Text(
-                      _output[index],
-                      style: const TextStyle(fontFamily: 'monospace', color: Colors.white, fontSize: 12),
+                child: Wrap(
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  children: _templates.map((template) {
+                    return ElevatedButton(
+                      onPressed: () {
+                        _controller.text = template['command']!;
+                        _focusNode.requestFocus();
+                        _controller.selection = TextSelection.fromPosition(TextPosition(offset: _controller.text.length));
+                      },
+                      child: Text(template['name']!),
                     );
-                  },
+                  }).toList(),
                 ),
               ),
-            ),
-            // Input field
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _controller,
-                onSubmitted: _runCommand,
-                autofocus: true,
-                style: const TextStyle(fontFamily: 'monospace', color: Colors.white),
-                decoration: const InputDecoration(
-                  prefixText: '> ',
-                  border: OutlineInputBorder(),
-                  isDense: true,
+              // Terminal output
+              Expanded(
+                child: Container(
+                  color: Colors.black.withAlpha((255 * 0.7).round()), // Semi-transparent background
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: _output.length,
+                    itemBuilder: (context, index) {
+                      return Text(
+                        _output[index],
+                        style: const TextStyle(fontFamily: 'monospace', color: Colors.white, fontSize: 12),
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+              // Input field
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _controller,
+                  onSubmitted: _runCommand,
+                  autofocus: true,
+                  style: const TextStyle(fontFamily: 'monospace', color: Colors.white),
+                  decoration: const InputDecoration(
+                    prefixText: '> ',
+                    isDense: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -81,9 +81,9 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Cinzel
+    - family: KTEGAKI
       fonts:
-        - asset: assets\fonts\KTEGAKI.ttf
+        - asset: assets/fonts/KTEGAKI.ttf
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
