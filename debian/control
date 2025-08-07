@@ -2,7 +2,7 @@ Source: sist-ui
 Section: unknown
 Priority: optional
 Maintainer: Your Name <your.email@example.com>
-Build-Depends: debhelper-compat (= 13), qt6-base-dev, qt6-qml-dev, flutter
+Build-Depends: debhelper-compat (= 13), qt6-base-dev, qt6-declarative-dev
 Standards-Version: 4.6.0
 Homepage: https://github.com/yourusername/sist_ui
 

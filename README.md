@@ -26,6 +26,7 @@ SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデ�
 *   C++コンパイラ（g++推奨）
 *   make
 *   dpkg-dev（.debパッケージ作成用）
+*   **qmakeのバージョン:** `qmake`が不安定な場合は、`qmake6`を使用してください。
 *   **外部アプリケーション:** 全ての機能を活用するには、以下のアプリケーションがシステムにインストールされている必要があります。
     *   `chromium-browser` (または `google-chrome`, `firefox`)
     *   `nautilus` (または `dolphin`, `thunar`)
@@ -43,7 +44,7 @@ SIST UIは、ダークでゴシック、絵画的な美学を持つ独自のデ�
     ```bash
     mkdir -p shell/build
     cd shell/build
-    qmake ../shell/shell.pro
+    qmake6 ../shell/shell.pro # qmake6を使用
     make
     cd ../..
     ```
@@ -67,3 +68,7 @@ dpkg-buildpackage -us -uc
 ```bash
 sudo dpkg -i <package_name>.deb
 ```
+
+**トラブルシューティング:**
+
+*   `apt build-dep .`で依存関係の解決に失敗する場合、`debian/control`に記述されているパッケージ名が、お使いのUbuntu環境で利用可能なものと異なる可能性があります。その場合は、手動で必要なパッケージをインストールしてください。例えば、`sudo apt install qt6-base-dev qt6-declarative-dev`や、QMLモジュールが見つからない場合は`sudo apt install qml6-module-qtquick-controls qml6-module-qtquick-layouts`のように実行します。

@@ -8,7 +8,7 @@ export DEB_BUILD_PROFILES := nodoc
 override_dh_auto_configure:
 	cd flutter_app && flutter build linux
 	mkdir -p shell/build
-	cd shell/build && qmake ../shell/shell.pro
+	cd shell/build && qmake6 ../shell.pro
 
 override_dh_auto_build:
 	$(MAKE) -C shell/build

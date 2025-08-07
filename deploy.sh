@@ -12,7 +12,7 @@ cd ..
 echo "Building Qt/QML shell..."
 mkdir -p shell/build
 cd shell/build
-qmake ../shell/shell.pro
+qmake6 ../shell.pro
 make
 cd ../..
 
