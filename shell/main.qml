@@ -33,6 +33,8 @@ Window {
 
         model: ListModel {
             ListElement { name: "Terminal"; icon: "qrc:/theme_assets/icons/icon_terminal.png"; action: "backend.launchTerminal()" }
+            ListElement { name: "Browser"; icon: "qrc:/theme_assets/icons/icon_app_default.png"; action: "backend.launchBrowser()" }
+            ListElement { name: "Files"; icon: "qrc:/theme_assets/icons/icon_folder.png"; action: "backend.launchFileManager()" }
             ListElement { name: "Settings"; icon: "qrc:/theme_assets/icons/icon_settings.png"; action: "console.log('Settings clicked')" }
             ListElement { name: "Game"; icon: "qrc:/theme_assets/icons/icon_app_default.png"; action: "console.log('Game clicked')" }
             // Add more applications here
@@ -105,6 +107,8 @@ Window {
             Repeater {
                 model: ListModel {
                     ListElement { name: "Terminal"; icon: "qrc:/theme_assets/icons/icon_terminal.png"; action: "backend.launchTerminal()" }
+                    ListElement { name: "Browser"; icon: "qrc:/theme_assets/icons/icon_app_default.png"; action: "backend.launchBrowser()" }
+                    ListElement { name: "Files"; icon: "qrc:/theme_assets/icons/icon_folder.png"; action: "backend.launchFileManager()" }
                     ListElement { name: "Settings"; icon: "qrc:/theme_assets/icons/icon_settings.png"; action: "console.log('Settings clicked')" }
                     ListElement { name: "Game"; icon: "qrc:/theme_assets/icons/icon_app_default.png"; action: "console.log('Game clicked')" }
                 }

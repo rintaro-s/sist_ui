@@ -11,6 +11,8 @@ public:
     explicit Backend(QQmlEngine *engine, QObject *parent = nullptr);
 
     Q_INVOKABLE void launchTerminal();
+    Q_INVOKABLE void launchBrowser();
+    Q_INVOKABLE void launchFileManager();
 
 private:
     QQmlEngine *m_engine;
