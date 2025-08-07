@@ -2,6 +2,7 @@
 #include <QProcess>
 #include <QDir>
 #include <QDebug>
+#include <QCoreApplication>
 
 Backend::Backend(QQmlEngine *engine, QObject *parent) : QObject(parent), m_engine(engine)
 {

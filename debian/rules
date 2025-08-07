@@ -14,7 +14,6 @@ override_dh_auto_build:
 	$(MAKE) -C shell/build
 
 override_dh_auto_install:
-	dh_auto_install
 	mkdir -p $(DESTDIR)/usr/bin
 	cp shell/build/sist-ui $(DESTDIR)/usr/bin/
 	mkdir -p $(DESTDIR)/usr/share/sist-ui/flutter_app
@@ -27,3 +26,7 @@ override_dh_strip:
 
 override_dh_shlibdeps:
 	dh_shlibdeps --exclude=usr/share/sist-ui/flutter_app/bundle/libflutter_linux_gtk.so
+
+override_dh_clean:
+	dh_clean
+	rm -rf shell/build
