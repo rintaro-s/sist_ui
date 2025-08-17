@@ -1,5 +1,5 @@
 # SIST UI
-
+# https://github.com/rintaro-s/sis に以降
 「ブルーアーカイブ」のUI美学にインスパイアされたカスタムデスクトップシェル。Qt/QMLとFlutterで構築。
 
 ## コンセプト：「ソシャゲのように直感的で簡単に操作できる」
